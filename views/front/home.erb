@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>LOGIN</title>
+    </head>
+    <body>
+        <form action="/auth" method="post">
+            <% if @error != nil %>
+            <div><%= @error %></div>
+            <% end %>
+            <table>
+                <tr>
+                    <td>USERID:</td><td><input type="text" name="user"></td>
+                </tr><tr>
+                    <td>PASSWORD:</td><td><input type="password" name="passwd"></td>
+                </tr><tr>
+                    <td colspan="2"><input type="submit" value="LOGIN"></td>
+                </tr>
+            </table>
+        </form>
+    </body>
+</html>
+
+
+

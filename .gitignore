@@ -1,0 +1,5 @@
+/.bundle
+/.vscode
+/Gemfile.lock
+/test.rb
+/vendor

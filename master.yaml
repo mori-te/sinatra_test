@@ -1,0 +1,77 @@
+#
+# マスターデータ
+#
+LANG:
+  'java':
+  - 'javascript'
+  - 4
+  - |
+    class HelloWorld {
+        public static void main(String[] args) {
+            System.out.println("Hello Java World!!");
+        }
+    }
+
+  'ruby': 
+  - 'ruby'
+  - 2
+  - |
+    puts "Hello Ruby World!!"
+
+  'js':
+  - 'javascript'
+  - 4
+  - |
+    console.log("Hello JS World!");
+
+  'python':
+  - 'python'
+  - 2
+  - |
+    print("Hello Python3 world!")
+  
+  'golang':
+  - 'go'
+  - 2
+  - |
+    package main
+    
+    import "fmt"
+    func main() {
+      fmt.Printf("Hello Go World\n")
+    }
+
+  'cobol':
+  - 'cobol'
+  - 4
+  - |
+    000010 IDENTIFICATION DIVISION.
+           PROGRAM-ID. HELLO.
+           PROCEDURE DIVISION.
+           DISPLAY "Hello COBOL World!".
+           STOP RUN.
+           END PROGRAM HELLO.
+
+  'casl2':
+  - 'casl2'
+  - 8
+  - |
+    ; hello.cas
+    MAIN    START
+            OUT     MSG,LEN
+            RET
+    MSG     DC      'Hello CASL2 World'
+    LEN     DC      17
+            END
+
+  'clang':
+  - 'clike'
+  - 4
+  - |
+    #include <stdio.h>
+
+    int main(int argc, char *argv[])
+    {
+        printf("Hello C World!\n");
+        return 0;
+    }

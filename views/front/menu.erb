@@ -1,12 +1,85 @@
 <!DOCTYPE html>
-<html>
-    <head>
-    </head>
-    <body>
-        <table>
-            <th><td>項番</td><td>設問</td></th>
-            <td><td></td><td></td></td>
-        </table>
-        <a href="/logout">LOGOUT</a>
-    </body>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>簡易言語学習サイト</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="common.css" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">簡易言語学習サイト</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link active rob-navbar" aria-current="page" href="https://docs.ruby-lang.org/ja/latest/doc/index.html" target="_blank">Ruby Docs</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active rob-navbar" aria-current="page" href="https://docs.oracle.com/javase/jp/8/docs/api/" target="_blank">Java Docs</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active rob-navbar" aria-current="page" href="https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference" target="_blank">JavaScript Docs</a>
+            </li>
+          </ul>
+        </div>
+        <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+          <%= @userid %>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+          <li><a class="dropdown-item" href="/logout">ログアウト</a></li>
+        </ul>
+      </div>
+      </div>
+    </nav>
+    <div class="container pt-2">
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">難易度D</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">難易度C</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">難易度B</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">難易度A</a>
+        </li>
+      </ul>      
+      <table class="table">
+        <thead>
+          <tr>
+            <th>課題</th><th>難易度</th><th>問題</th><th>更新日</th><th colspan="2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1-1</td><td>D</td><td><a href="/study">Hello Worldの表示</a></td><td>2022/05/23</td>
+            <td><div class="text-right"><button type="button" class="btn btn-primary btn-sm btn-menu">演習済</button></div></td>
+          </tr>
+          <tr>
+            <td>1-2</td><td>D</td><td>四則演算の計算１</td><td>2022/05/23</td>
+            <td><div class="text-right"><button type="button" class="btn btn-primary btn-sm btn-menu">演習済</button></div></td>
+          </tr>
+          <tr>
+            <td>1-2</td><td>D</td><td>四則演算の計算２</td><td>2022/05/23</td>
+            <td><div class="text-right"><button type="button" class="btn btn-success btn-sm btn-menu">提出済</button></div></td>
+          </tr>
+          <tr>
+            <td>1-2</td><td>D</td><td>偶数・奇数の表示</td><td>2022/05/23</td><td></td>
+          </tr>
+          <tr>
+            <td>1-2</td><td>D</td><td>任意の数の合計</td><td>2022/05/23</td><td></td>
+          </tr>
+          <tr>
+            <td>1-2</td><td>D</td><td>任意の文字列を＊で囲む</td><td>2022/05/23</td><td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  </body>
 </html>

@@ -6,7 +6,7 @@ require 'net/imap'
 #
 # index
 #
-class RootController < BaseController
+class FrontController < BaseController
   set :views, (proc { File.join(root, 'views/front') })
   enable :sessions
 
@@ -23,7 +23,7 @@ class RootController < BaseController
     user, passwd = @params[:user], @params[:passwd]
     begin
       imap = Net::IMAP.new('mail.tsone.co.jp')
-      imap.authenticate('LOGIN', user, passwd)
+      imap.authenticate('PLAIN', user, passwd)
     rescue Net::IMAP::NoResponseError
       @error = "ユーザまたはパスワードが間違っています！"
     end
@@ -34,6 +34,11 @@ class RootController < BaseController
       session[:userid] = user
       redirect '/menu'
     end
+  end
+
+  get '/logout' do
+    session[:userid] = nil
+    erb :logout
   end
 
 end

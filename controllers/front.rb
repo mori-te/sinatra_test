@@ -77,6 +77,19 @@ class FrontController < BaseController
     @userid = session[:userid]
     res = client.query("select * from questions where id = #{no}")
     @question = res.first
+    input_type = @question['input_type']
+    if input_type == '1'
+      @input_type = '標準入力データ'
+      @input_data = @question['parameter']
+      set_input_file(@userid, '.input.txt', @question['parameter'])
+    elsif input_type == '2'
+      @input_type = "入力ファイル（#{@question['file_name']}）"
+      @input_data = @question['file_data']
+      set_input_file(@userid, @question['file_name'], @question['file_data'])
+    else
+      @input_type = '入力データなし'
+      @input_data = '-'
+    end
     erb :study
   end
 
@@ -198,12 +211,10 @@ class FrontController < BaseController
     result
   end
 
-  def set_stdin_file(user, input_data)
-    input_data_file = "/home/#{user}/.input.txt"
+  def set_input_file(user, file_name, data)
+    input_data_file = "/home/#{user}/#{file_name}"
     File.open(input_data_file, "w") do |io|
-      input_data.each do |dat|
-        io.puts(dat)
-      end
+        io.print(data)
     end
     FileUtils.chown(user, user, [input_data_file])
   end  

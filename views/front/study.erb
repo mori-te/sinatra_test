@@ -69,19 +69,30 @@
         </div>
       </div>
       <div class="row">
-      <div class="col-lg">
-        <div class="drop_area" @dragenter="dragEnter" @dragleave="dragLeave" @dragover.prevent @drop.prevent="dropFile" :class="{enter: isEnter}">
-          データファイルのアップロード（ドラッグ＆ドロップ） {{ uploadfile }}
-        </div>
-      </div>
-      <div class="col-lg"></div>
-      </div>
-      <div class="row">
         <div class="col-lg">
+          ソースコード
           <span @keydown.enter.shift.prevent="exec">
             <codemirror ref="cm" v-model="source" :options="cmOptions"></codemirror>
           </span>
-          <br>
+        </div>
+        <div class="col-lg">
+          <%= @input_type %>
+          <div class="row">
+            <textarea id="output" class="form-control font-monospace" rows="3" readonly><%= @input_data %></textarea>
+          </div>
+          実行結果
+          <div class="row">
+              <textarea id="output" class="form-control font-monospace" rows="10" readonly>{{ result }}</textarea>
+          </div>
+          実行結果（解答）
+          <div class="row">
+              <textarea id="output" class="form-control font-monospace" rows="3" readonly><%= @question['answer'] %></textarea>
+          </div>
+        </div>
+      </div>
+      <br>
+      <div class="row">
+        <div class="col-lg">
           <select v-model="lang" v-on:change="change" class="form-select">
             <option value="java">Java</option>
             <option value="ruby">Ruby</option>
@@ -94,8 +105,6 @@
           </select>
         </div>
         <div class="col-lg">
-          <textarea id="output" class="form-control font-monospace" rows="20" readonly>{{ result }}</textarea>
-          <br>
           <button id="save" type="button" class="btn btn-secondary">保 存</button>
           <button v-on:click="exec" id="run" type="button" class="btn btn-primary float-end">実 行</button>
           <button id="report" type="button" class="btn btn-primary float-end me-md-2">提 出</button>

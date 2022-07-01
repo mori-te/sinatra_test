@@ -45,3 +45,7 @@ nav {
 .enter {
     border: 3px dashed powderblue;
 }
+
+.study-result {
+    background-color: #ffffdd !important;
+}

@@ -4,6 +4,7 @@ require_relative 'base'
 require 'net/imap'
 require 'json'
 require 'yaml'
+require 'mysql2'
 require 'fileutils'
 
 #
@@ -12,6 +13,9 @@ require 'fileutils'
 class FrontController < BaseController
   set :views, (proc { File.join(root, 'views/front') })
   enable :sessions
+
+  client = Mysql2::Client.new(
+   :host => 'study-mysql', :username => 'root', :password => 'mysql', :encoding => 'utf8', :database => 'study')
 
   # 初期設定
   configure do
@@ -27,6 +31,13 @@ class FrontController < BaseController
   get '/menu' do
     redirect '/' unless session[:userid]
     @userid = session[:userid]
+    level =  @params[:level]
+    level = level == nil ? 'D' : level
+    @questions = []
+    res = client.query("select * from questions where level = '#{level}'")
+    res.each do |row|
+      @questions << row
+    end
     erb :menu
   end
 
@@ -34,8 +45,9 @@ class FrontController < BaseController
   post '/auth' do
     user, passwd = @params[:user], @params[:passwd]
     begin
-      imap = Net::IMAP.new('mail.tsone.co.jp')
-      imap.authenticate('PLAIN', user, passwd)
+      user = 'mori-te'
+      # imap = Net::IMAP.new('mail.tsone.co.jp')
+      # imap.authenticate('PLAIN', user, passwd)
     rescue Net::IMAP::NoResponseError
       @error = "ユーザまたはパスワードが間違っています！"
     end
@@ -61,7 +73,10 @@ class FrontController < BaseController
   # サイトトップ
   get '/study' do
     redirect '/' unless session[:userid]
-    @userid = session[:userid] 
+    no = @params['no']
+    @userid = session[:userid]
+    res = client.query("select * from questions where id = #{no}")
+    @question = res.first
     erb :study
   end
 

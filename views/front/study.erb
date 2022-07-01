@@ -59,12 +59,12 @@
     <div id="app" class="container py-2">
       <div class="row">
         <div class="col">
-          <h2>課題 1-1</h2>
+          <h2>課題 <%= @question['task'] %></h2>
           <p class="lead">
-          Hello Worldの表示
+          <%= @question['outline'] %>
           </p>
           <p>
-          Hello Worldを表示するプログラムを作成しなさい。文字列の最後に改行コードを付けて下さい。 
+         <%= @question['question'] %> 
           </p>
         </div>
       </div>

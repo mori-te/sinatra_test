@@ -56,6 +56,16 @@
           </tr>
         </thead>
         <tbody>
+          <% @questions.each do |q| %>
+          <tr>
+            <td><%= q['task'] %></td><td><%= q['level'] %></td><td><a href="/study?no=<%= q['id'] %>"><%= q['outline'] %></a></td><td><%= q['up_date'].strftime('%Y/%m/%d') %></td>
+            <td>
+              <div class="text-right">
+                <button type="button" class="btn btn-primary btn-sm btn-menu">演習済</button>
+              </div>
+            </td>
+          </tr>
+          <% end %>
           <tr>
             <td>1-1</td><td>D</td><td><a href="/study">Hello Worldの表示</a></td><td>2022/05/23</td>
             <td><div class="text-right"><button type="button" class="btn btn-primary btn-sm btn-menu">演習済</button></div></td>

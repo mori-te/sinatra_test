@@ -6,6 +6,8 @@ require 'json'
 require 'yaml'
 require 'mysql2'
 require 'fileutils'
+require './lib/model'
+require './lib/simplemail'
 
 #
 # index
@@ -24,7 +26,7 @@ class FrontController < BaseController
 
   # ログイン
   get '/' do
-    erb :home
+    erb :front
   end
 
   # 問題一覧
@@ -45,7 +47,7 @@ class FrontController < BaseController
   post '/auth' do
     user, passwd = @params[:user], @params[:passwd]
     begin
-      user = 'mori-te'
+      #user = 'mori-te'
       # imap = Net::IMAP.new('mail.tsone.co.jp')
       # imap.authenticate('PLAIN', user, passwd)
     rescue Net::IMAP::NoResponseError
@@ -75,6 +77,7 @@ class FrontController < BaseController
     redirect '/' unless session[:userid]
     no = @params['no']
     @userid = session[:userid]
+    session[:no] = no
     res = client.query("select * from questions where id = #{no}")
     @question = res.first
     input_type = @question['input_type']
@@ -106,9 +109,9 @@ class FrontController < BaseController
     user = json['user']
     source_code = json['source']
     class_name = source_code.scan(/class (\w+)/)[0]
-    source_file = "/home/#{user}/#{class_name[0]}.java"
+    source_file = "/home/#{user}/#{user}.java"
     class_file = "/home/#{user}/#{class_name[0]}.class"
-    exec_name = File.basename(source_file, '.*')
+    exec_name = File.basename(class_file, '.*')
     File.open(source_file, 'w') do |io|
       io.print(json['source'])
     end
@@ -164,10 +167,59 @@ class FrontController < BaseController
     { result: result }.to_json
   end
 
+  # 言語情報取得
   get '/lang' do
-    lang, indent, source = $yaml['LANG'][params['lang']]
+    lang, extension, indent, source = $yaml['LANG'][params['lang']]
     { lang: lang, indent: indent, source: source }.to_json
   end
+
+  # ユーザ情報取得
+  get '/userid' do
+    redirect '/' unless session[:userid]
+    userid = session[:userid]
+    { userid: userid }.to_json
+  end
+
+  # ソースコード提出
+  post '/submit_code' do
+    # パラメータの取得
+    json = JSON.parse(request.body.read)
+    user = json['user']
+    lang = json['lang']
+    task = json['task']
+    code = json['source']
+    result = json['result']
+
+    type, extension, indent, source = $yaml['LANG'][lang]
+    source_file = "/home/#{user}/#{user}.#{extension}"
+
+    languages_dao = Languages.new(client)
+    language = languages_dao.find_by("shot_name = ?", lang).first
+    questions_dao = Questions.new(client)
+    question = questions_dao.find_by("task = ?", task).first
+    teachers_dao = Teachers.new(client)
+    teachers = teachers_dao.find_by("lang_id = ?", language.id).first
+
+    # 進捗データ登録
+    sql = %{
+      INSERT INTO progresses (userid, question_id, lang_id, code, result, status, submitted, cr_user, cr_date, del_flag)
+      VALUES (?, ?, ?, ?, ?, null, 1, ?, NOW(), '0')
+    }
+    stmt = client.prepare(sql)
+    res = stmt.execute(user, question.id, language.id, code, result, user)
+
+    # ソースコードメール提出
+    # mail = STUDY::SimpleMail.new('smtp.tsone.co.jp', 25)
+    from = "#{user}@tsone.co.jp"
+    to = "#{teachers.userid}@tsone.co.jp"
+    p [from, to]
+    # body = "ほげほげ"
+    # attach_files = [source_file]
+    # mail.send(from, to, body, attach_files)
+
+    ""
+  end
+
 
   # ファイルアップロード
   post '/upload' do

@@ -3,7 +3,7 @@ Vue.use(VueCodemirror);
 var vm = new Vue({
     el: "#app",
     data: {
-        user: 'mori-te',
+        user: '',
         source: "",
         result: "-",
         lang: 'java',
@@ -30,9 +30,12 @@ var vm = new Vue({
             });
         },
         submitted: function () {
+            vm.task = this.$refs['task'].textContent;
             axios.post('submit_code', {
                 user: vm.user,
                 lang: vm.lang,
+                task: vm.task,
+                result: vm.result,
                 source: vm.source
             }).then(function(response) {
 
@@ -46,6 +49,12 @@ var vm = new Vue({
                 vm.cmOptions.indentUnit = response.data.indent;
                 vm.source = response.data.source;
             });
+        },
+        getUserId: function () {
+            axios.get("userid")
+            .then(function(response) {
+                vm.user = response.data.userid;
+            })
         },
         dragEnter: function () {
             this.isEnter = true;
@@ -71,5 +80,6 @@ var vm = new Vue({
     },
     mounted() {
         this.change();
+        this.getUserId();
     }
 })

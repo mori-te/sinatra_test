@@ -9,7 +9,7 @@ gem 'webrick'
 gem 'sinatra'
 gem 'sinatra-contrib'
 gem 'net-imap'
-gem 'mysql2'
+gem 'mysql2'    # yum install mysql-devel -y
 gem 'net-smtp'
 gem 'mail'
 gem 'openssl'

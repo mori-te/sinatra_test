@@ -7,7 +7,7 @@ USE study
 -- 問題テーブル
 CREATE TABLE questions (
     id          INT unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    task        VARCHAR(6),          -- 課題
+    task        VARCHAR(6) UNIQUE,   -- 課題
     level       CHAR(1),             -- 難易度
     input_type  CHAR(1),             -- 入力区分（0:なし、1:パラメータ、2:ファイル）
     parameter   TEXT,                -- 入力パラメータ
@@ -31,6 +31,7 @@ CREATE TABLE progresses (
     question_id INT unsigned,        -- 問題ID
     lang_id     TINYINT unsigned,    -- 言語ID
     code        MEDIUMTEXT,          -- ソースコード
+    result      TEXT,                -- 実行結果
     status      TINYINT unsigned,    -- 状況(0:OK, 1:NG)
     submitted   TINYINT unsigned,    -- 提出フラグ(0:未提出, 1:提出済)
     cr_user     VARCHAR(64),

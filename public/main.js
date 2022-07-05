@@ -15,6 +15,7 @@ var vm = new Vue({
             mode: 'javascript',
             theme: 'lesser-dark'
         },
+        task: "",
         uploadfile: "",
         isEnter: false
     },
@@ -27,6 +28,15 @@ var vm = new Vue({
             }).then(function (response) {
                 vm.result = response.data.result;
             });
+        },
+        submitted: function () {
+            axios.post('submit_code', {
+                user: vm.user,
+                lang: vm.lang,
+                source: vm.source
+            }).then(function(response) {
+
+            })
         },
         change: function () {
             axios.get("lang?lang=" + this.lang)

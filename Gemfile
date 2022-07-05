@@ -10,4 +10,7 @@ gem 'sinatra'
 gem 'sinatra-contrib'
 gem 'net-imap'
 gem 'mysql2'
+gem 'net-smtp'
+gem 'mail'
+gem 'openssl'
 

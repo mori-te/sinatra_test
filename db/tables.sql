@@ -2,6 +2,7 @@
 -- テーブル作成用SQLスクリプト
 --
 CREATE DATABASE study DEFAULT CHARACTER SET utf8;
+USE study
 
 -- 問題テーブル
 CREATE TABLE questions (

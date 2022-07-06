@@ -2,6 +2,7 @@
 
 require_relative 'base'
 require 'net/imap'
+require 'json'
 
 #
 # admin 

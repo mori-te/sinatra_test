@@ -34,12 +34,17 @@ class FrontController < BaseController
     redirect '/' unless session[:userid]
     @userid = session[:userid]
     level =  @params[:level]
-    level = level == nil ? 'D' : level
+    @level = level == nil ? 'D' : level
     @questions = []
-    res = client.query("select * from questions where level = '#{level}'")
+    res = client.query("select * from questions where level = '#{@level}'")
     res.each do |row|
       @questions << row
     end
+    @level_d = @level == "D" ? "active" : ""
+    @level_c = @level == "C" ? "active" : ""
+    @level_b = @level == "B" ? "active" : ""
+    @level_a = @level == "A" ? "active" : ""
+
     erb :menu
   end
 
@@ -209,13 +214,23 @@ class FrontController < BaseController
     res = stmt.execute(user, question.id, language.id, code, result, user)
 
     # ソースコードメール提出
-    # mail = STUDY::SimpleMail.new('smtp.tsone.co.jp', 25)
+    mail = STUDY::SimpleMail.new('smtp.tsone.co.jp', 25)
     from = "#{user}@tsone.co.jp"
     to = "#{teachers.userid}@tsone.co.jp"
     p [from, to]
-    # body = "ほげほげ"
-    # attach_files = [source_file]
-    # mail.send(from, to, body, attach_files)
+    body = "課題 #{task} のソースコードを提出します。\n\n"
+    body += "【問題文】\n#{question.question}\n\n"
+    if question.input_type == "0"
+    elsif question.input_type == "1"
+      body += "【入力値】標準入力で以下になります。\n#{question.parameter}\n"
+    else question.input_type == "2"
+      body += "【入力値】#{question.file_name}ファイルで以下になります。\n"
+      body += "#{question.file_data}\n"
+    end
+    body += "\n【正解】\n#{question.answer}"
+    body += "\n\nご確認の程よろしくお願いいたします。\n"
+    attach_files = [source_file]
+    mail.send(from, to, body, attach_files)
 
     ""
   end
@@ -233,6 +248,84 @@ class FrontController < BaseController
     FileUtils.chown(user, user, [file_path])
     ""
   end
+
+  #
+  # 管理機能
+  #
+
+  # 問題作成
+  # サイトトップ
+  get '/create' do
+    redirect '/' unless session[:userid]
+
+    @userid = session[:userid]
+    @question = {}
+    @question['task'] = "新規"
+    @question['no'] = @params['no'] ? @params['no'] : '0'
+    p @question['no']
+    erb :create
+  end
+
+  get '/edit' do
+    redirect '/' unless session[:userid]
+    @userid = session[:userid]
+    no = @params['no']
+
+    questions_dao = Questions.new(client)
+    qa = questions_dao.find_by("id = ?", no.to_i).first
+    input_data = qa.parameter if qa.input_type == "1"
+    input_data = qa.file_data if qa.input_type == "2"
+
+    { 
+      task: qa.task,
+      level: qa.level,
+      outline: qa.outline,
+      question: qa.question,
+      input_type: qa.input_type,
+      input_data: input_data,
+      input_file_name: qa.file_name,
+      answer: qa.answer
+    }.to_json
+  end
+
+  post '/create' do
+    redirect '/' unless session[:userid]
+    params = JSON.parse(request.body.read)
+    userid = session[:userid]
+    level = params["level"]
+
+    input_type = params["input_type"]
+    parameter = params["input_data"] if input_type == "1"
+    file_data = params["input_data"] if input_type == "2"
+    file_name = params["input_file_name"] if input_type == "2"
+    outline = params["outline"]
+    question = params["question"]
+    answer = params["answer"]
+
+    if params["no"] == "0"
+      res = client.query("select substring_index(max(task), '-', -1) as level_max from questions where level = '#{level}'")
+      no = res.first["level_max"].to_i + 1
+      task = conv_level(level).to_s + "-" + no.to_s
+      sql = %{
+        INSERT INTO questions (task, level, input_type, parameter, file_name, file_data, outline, question, answer, cr_user, cr_date, up_user, up_date, del_flag)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, NOW(), '0')
+      }
+      stmt = client.prepare(sql)
+      res = stmt.execute(task, level, input_type, parameter, file_name, file_data, outline, question, answer, userid, userid)
+    else
+      no = params["no"].to_i
+      task = params["task"]
+      sql = %{
+        UPDATE questions SET level = ?, input_type = ?, parameter = ?, file_name = ?, file_data = ?, outline = ?, question = ?, answer = ?, up_user = ?, up_date = NOW(), del_flag = '0'
+      }
+      stmt = client.prepare(sql)
+      res = stmt.execute(level, input_type, parameter, file_name, file_data, outline, question, answer, userid)
+    end
+
+    ""
+  end
+
+
 
   # 共通処理
   def write_source_file(body, suffix)
@@ -270,5 +363,9 @@ class FrontController < BaseController
     end
     FileUtils.chown(user, user, [input_data_file])
   end  
+
+  def conv_level(level)
+    69 - level[0].ord
+  end
 
 end

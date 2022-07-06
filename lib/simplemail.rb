@@ -9,7 +9,7 @@ module STUDY
     def initialize(smtp, port)
       @smtp = smtp
       @port = port
-      @subject = '[言語学習サイト] ソースコード提出'
+      @subject = '[言語学習サイト] ソースコード提出（開発中）'
     end
 
     def send(from, to, body, attach_files)

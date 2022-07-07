@@ -6,6 +6,7 @@ require 'json'
 require 'yaml'
 require 'fileutils'
 require './lib/model'
+require './lib/simplemail'
 
 #
 # フロント機能コントローラ
@@ -37,7 +38,14 @@ class FrontController < BaseController
     @userid = session[:userid]
     level =  @params[:level] || 'D'
     @questions = []
-    res = @@client.query("select * from questions where level = '#{level}' order by cast(substr(task, 3) as signed)")
+    sql = %{
+      select q.*, p.status, p.submitted
+        from questions q left outer join progresses p
+          on q.id = p.question_id and p.userid = '#{@userid}'
+       where q.level = '#{level}'
+      order by cast(substr(q.task, 3) as signed)
+    }
+    res = @@client.query(sql)
     res.each do |row|
       @questions << row
     end
@@ -54,9 +62,9 @@ class FrontController < BaseController
   post '/auth' do
     user, passwd = @params[:user], @params[:passwd]
     begin
-      #user = 'mori'
-      # imap = Net::IMAP.new('mail.mo-net.jp')
-      # imap.authenticate('PLAIN', user, passwd)
+      #user = 'mori-te'
+      imap = Net::IMAP.new('mail.tsone.co.jp')
+      imap.authenticate('PLAIN', user, passwd)
     rescue Net::IMAP::NoResponseError
       @error = "ユーザまたはパスワードが間違っています！"
     end
@@ -210,24 +218,37 @@ class FrontController < BaseController
     source_file = "/home/#{user}/#{user}.#{extension}"
 
     languages_dao = Languages.new(@@client)
-    language = languages_dao.find_by("shot_name = ?", json['lang']).first
+    language = languages_dao.find_by("shot_name = ?", lang).first
     questions_dao = Questions.new(@@client)
     question = questions_dao.find_by("task = ?", task).first
-    teachers_dao = Teachers.new(client)
+    teachers_dao = Teachers.new(@@client)
     teachers = teachers_dao.find_by("lang_id = ?", language.id).first
 
     # 進捗データ登録
-    sql = %{
-      INSERT INTO progresses (userid, question_id, lang_id, code, result, status, submitted, cr_user, cr_date, del_flag)
-      VALUES (?, ?, ?, ?, ?, null, 1, ?, NOW(), '0')
-    }
-    stmt = @@client.prepare(sql)
-    res = stmt.execute(user, question.id, language.id, code, result, user)
+    progresses_dao = Progresses.new(@@client)
+    progresses = progresses_dao.find_by("userid = ? and question_id = ?", user, question.id)
+
+    if progresses.size == 0
+      sql = %{
+        INSERT INTO progresses (userid, question_id, lang_id, code, result, status, submitted, cr_user, cr_date, del_flag)
+        VALUES (?, ?, ?, ?, ?, null, 1, ?, NOW(), '0')
+      }
+      stmt = @@client.prepare(sql)
+      res = stmt.execute(user, question.id, language.id, code, result, user)
+    else
+      sql = %{
+        UPDATE progresses SET lang_id = ?, code = ?, result = ?, status = null, submitted = 1, up_user = ?, up_date = NOW(), del_flag = '0'
+        WHERE userid = ? AND question_id = ?
+      }
+      stmt = @@client.prepare(sql)
+      res = stmt.execute(language.id, code, result, user, user, question.id)
+    end
 
     # ソースコードメール提出
     mail = STUDY::SimpleMail.new('smtp.tsone.co.jp', 25)
     from = "#{user}@tsone.co.jp"
-    to = "#{teachers.userid}@tsone.co.jp"
+    #to = "#{teachers.userid}@tsone.co.jp"
+    to = "mori-te@tsone.co.jp"
     p [from, to]
     body = "課題 #{task} のソースコードを提出します。\n\n"
     body += "【問題文】\n#{question.question}\n\n"

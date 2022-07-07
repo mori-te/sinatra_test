@@ -4,56 +4,58 @@ require_relative 'base'
 require 'net/imap'
 require 'json'
 require 'yaml'
-require 'mysql2'
 require 'fileutils'
 require './lib/model'
-require './lib/simplemail'
 
 #
-# index
+# フロント機能コントローラ
 #
 class FrontController < BaseController
   set :views, (proc { File.join(root, 'views/front') })
-  enable :sessions
-
-  client = Mysql2::Client.new(
-   :host => 'study-mysql', :username => 'root', :password => 'mysql', :encoding => 'utf8', :database => 'study')
 
   # 初期設定
   configure do
     $yaml = YAML.load_file('master.yaml')
   end
 
+  # -------
+  # 画面表示処理
+  # -------
+
+  #
   # ログイン
+  #
   get '/' do
     erb :front
   end
 
+  #
   # 問題一覧
+  #
   get '/menu' do
     redirect '/' unless session[:userid]
     @userid = session[:userid]
-    level =  @params[:level]
-    @level = level == nil ? 'D' : level
+    level =  @params[:level] || 'D'
     @questions = []
-    res = client.query("select * from questions where level = '#{@level}'")
+    res = @@client.query("select * from questions where level = '#{level}' order by cast(substr(task, 3) as signed)")
     res.each do |row|
       @questions << row
     end
-    @level_d = @level == "D" ? "active" : ""
-    @level_c = @level == "C" ? "active" : ""
-    @level_b = @level == "B" ? "active" : ""
-    @level_a = @level == "A" ? "active" : ""
-
+    @level_d = level == "D" ? "active" : ""
+    @level_c = level == "C" ? "active" : ""
+    @level_b = level == "B" ? "active" : ""
+    @level_a = level == "A" ? "active" : ""
     erb :menu
   end
 
+  #
   # 認証
+  #
   post '/auth' do
     user, passwd = @params[:user], @params[:passwd]
     begin
-      #user = 'mori-te'
-      # imap = Net::IMAP.new('mail.tsone.co.jp')
+      #user = 'mori'
+      # imap = Net::IMAP.new('mail.mo-net.jp')
       # imap.authenticate('PLAIN', user, passwd)
     rescue Net::IMAP::NoResponseError
       @error = "ユーザまたはパスワードが間違っています！"
@@ -67,23 +69,28 @@ class FrontController < BaseController
     end
   end
 
+  #
   # ログアウト
+  #
   get '/logout' do
     session[:userid] = nil
     erb :logout
   end
 
   #
-  # 学習ページ
+  # 問題回答画面
   #
-
-  # サイトトップ
   get '/study' do
+    # 認証
     redirect '/' unless session[:userid]
+
+    # パラメータ・セッション情報取得
     no = @params['no']
     @userid = session[:userid]
     session[:no] = no
-    res = client.query("select * from questions where id = #{no}")
+    
+    # 問題取得
+    res = @@client.query("select * from questions where id = #{no}")
     @question = res.first
     input_type = @question['input_type']
     if input_type == '1'
@@ -100,6 +107,10 @@ class FrontController < BaseController
     end
     erb :study
   end
+
+  # -------
+  # WEBAPI
+  # -------
 
   # ruby実行・結果出力
   post '/exec_ruby' do
@@ -198,9 +209,9 @@ class FrontController < BaseController
     type, extension, indent, source = $yaml['LANG'][lang]
     source_file = "/home/#{user}/#{user}.#{extension}"
 
-    languages_dao = Languages.new(client)
-    language = languages_dao.find_by("shot_name = ?", lang).first
-    questions_dao = Questions.new(client)
+    languages_dao = Languages.new(@@client)
+    language = languages_dao.find_by("shot_name = ?", json['lang']).first
+    questions_dao = Questions.new(@@client)
     question = questions_dao.find_by("task = ?", task).first
     teachers_dao = Teachers.new(client)
     teachers = teachers_dao.find_by("lang_id = ?", language.id).first
@@ -210,7 +221,7 @@ class FrontController < BaseController
       INSERT INTO progresses (userid, question_id, lang_id, code, result, status, submitted, cr_user, cr_date, del_flag)
       VALUES (?, ?, ?, ?, ?, null, 1, ?, NOW(), '0')
     }
-    stmt = client.prepare(sql)
+    stmt = @@client.prepare(sql)
     res = stmt.execute(user, question.id, language.id, code, result, user)
 
     # ソースコードメール提出
@@ -231,10 +242,8 @@ class FrontController < BaseController
     body += "\n\nご確認の程よろしくお願いいたします。\n"
     attach_files = [source_file]
     mail.send(from, to, body, attach_files)
-
     ""
   end
-
 
   # ファイルアップロード
   post '/upload' do
@@ -249,85 +258,11 @@ class FrontController < BaseController
     ""
   end
 
-  #
-  # 管理機能
-  #
-
-  # 問題作成
-  # サイトトップ
-  get '/create' do
-    redirect '/' unless session[:userid]
-
-    @userid = session[:userid]
-    @question = {}
-    @question['task'] = "新規"
-    @question['no'] = @params['no'] ? @params['no'] : '0'
-    p @question['no']
-    erb :create
-  end
-
-  get '/edit' do
-    redirect '/' unless session[:userid]
-    @userid = session[:userid]
-    no = @params['no']
-
-    questions_dao = Questions.new(client)
-    qa = questions_dao.find_by("id = ?", no.to_i).first
-    input_data = qa.parameter if qa.input_type == "1"
-    input_data = qa.file_data if qa.input_type == "2"
-
-    { 
-      task: qa.task,
-      level: qa.level,
-      outline: qa.outline,
-      question: qa.question,
-      input_type: qa.input_type,
-      input_data: input_data,
-      input_file_name: qa.file_name,
-      answer: qa.answer
-    }.to_json
-  end
-
-  post '/create' do
-    redirect '/' unless session[:userid]
-    params = JSON.parse(request.body.read)
-    userid = session[:userid]
-    level = params["level"]
-
-    input_type = params["input_type"]
-    parameter = params["input_data"] if input_type == "1"
-    file_data = params["input_data"] if input_type == "2"
-    file_name = params["input_file_name"] if input_type == "2"
-    outline = params["outline"]
-    question = params["question"]
-    answer = params["answer"]
-
-    if params["no"] == "0"
-      res = client.query("select substring_index(max(task), '-', -1) as level_max from questions where level = '#{level}'")
-      no = res.first["level_max"].to_i + 1
-      task = conv_level(level).to_s + "-" + no.to_s
-      sql = %{
-        INSERT INTO questions (task, level, input_type, parameter, file_name, file_data, outline, question, answer, cr_user, cr_date, up_user, up_date, del_flag)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, NOW(), '0')
-      }
-      stmt = client.prepare(sql)
-      res = stmt.execute(task, level, input_type, parameter, file_name, file_data, outline, question, answer, userid, userid)
-    else
-      no = params["no"].to_i
-      task = params["task"]
-      sql = %{
-        UPDATE questions SET level = ?, input_type = ?, parameter = ?, file_name = ?, file_data = ?, outline = ?, question = ?, answer = ?, up_user = ?, up_date = NOW(), del_flag = '0'
-      }
-      stmt = client.prepare(sql)
-      res = stmt.execute(level, input_type, parameter, file_name, file_data, outline, question, answer, userid)
-    end
-
-    ""
-  end
-
-
-
+  # -------
   # 共通処理
+  # -------
+
+  # ソースコードサーバ出力
   def write_source_file(body, suffix)
     json = JSON.parse(body)
     user = json['user']
@@ -339,6 +274,7 @@ class FrontController < BaseController
     [source_file, user]
   end
 
+  # ソースコード実行処理
   def exec_source_file(user, cmd)
     result = nil
     begin
@@ -356,6 +292,7 @@ class FrontController < BaseController
     result
   end
 
+  # 入力データサーバ出力処理
   def set_input_file(user, file_name, data)
     input_data_file = "/home/#{user}/#{file_name}"
     File.open(input_data_file, "w") do |io|
@@ -363,9 +300,5 @@ class FrontController < BaseController
     end
     FileUtils.chown(user, user, [input_data_file])
   end  
-
-  def conv_level(level)
-    69 - level[0].ord
-  end
 
 end

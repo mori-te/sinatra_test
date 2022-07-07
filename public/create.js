@@ -29,7 +29,7 @@ var vm = new Vue({
     },
     methods: {
         exec: function () {
-            axios.post('exec_' + vm.lang, {
+            axios.post('/exec_' + vm.lang, {
                 user: vm.user,
                 lang: vm.lang,
                 source: vm.source,
@@ -40,7 +40,7 @@ var vm = new Vue({
         },
         create: function () {
             const no = this.$refs['no'].value;
-            axios.post('create', {
+            axios.post('create_and_edit_question_api', {
                 no: no,
                 task: vm.task,
                 level: vm.level,
@@ -57,7 +57,7 @@ var vm = new Vue({
             })
         },
         edit: function (no) {
-            axios.get("edit?no=" + no)
+            axios.get("get_question_api?no=" + no)
             .then(function(response) {
                 vm.task = response.data.task;
                 vm.level = response.data.level;
@@ -69,8 +69,16 @@ var vm = new Vue({
                 vm.answer = response.data.answer
             })
         },
+        deleteQuestion: function() {
+            const no = this.$refs['no'].value;
+            axios.post('delete_api', {
+                no: no
+            }).then(function(response) {
+                window.location.href = "/menu?level=" + vm.level;
+            })
+        },
         change: function () {
-            axios.get("lang?lang=" + this.lang)
+            axios.get("/lang?lang=" + this.lang)
             .then(function(response) {
                 vm.cmOptions.mode = response.data.lang;
                 vm.cmOptions.tabSize = response.data.indent;
@@ -79,7 +87,7 @@ var vm = new Vue({
             });
         },
         getUserId: function () {
-            axios.get("userid")
+            axios.get("/userid")
             .then(function(response) {
                 vm.user = response.data.userid;
             })

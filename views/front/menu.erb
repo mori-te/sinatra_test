@@ -58,17 +58,20 @@
         <tbody>
           <% @questions.each do |q| %>
           <tr>
-            <td><%= q['task'] %></td><td><%= q['level'] %></td><td><a href="/study?no=<%= q['id'] %>"><%= q['outline'] %></a></td><td><%= q['up_date'].strftime('%Y/%m/%d') %></td>
+            <td><%= q['task'] %></td><td><%= q['level'] %></td>
+            <td><a href="/study?no=<%= q['id'] %>"><%= q['outline'] %></a></td>
+            <td><%= q['up_date'].strftime('%Y/%m/%d') %></td>
             <td>
               <div class="text-right">
-                <button type="button" class="btn btn-primary btn-sm btn-menu">演習済</button>
+                <button type="button" class="btn btn-primary btn-sm btn-menu">演習済</button> &nbsp;
+                <a href="/admin/create_and_edit?no=<%= q['id'] %>">EDIT</a>
               </div>
             </td>
           </tr>
           <% end %>
         </tbody>
       </table>
-      <a href="/create">create</a>
+      <a href="/admin/create_and_edit">CREATE</a>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
   </body>

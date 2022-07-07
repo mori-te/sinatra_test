@@ -4,9 +4,9 @@
 require 'mysql2'
 
 class BaseDao
-  def initialize(client)
+  def initialize(client, table_name = nil)
     @client = client
-    @clazz = self.class.name.downcase
+    @table = table_name || self.class.name.downcase
   end
 
   def query(sql, *param)
@@ -16,22 +16,21 @@ class BaseDao
       stmt = @client.prepare(sql)
       res = stmt.execute(*param)
     end
-    res
-  end
-
-  def find_by(where = "", *param)
-    where = "where " + where if where != ""
-    res = query("select * from #{@clazz} #{where}", *param)
     fields = []
     res.fields.each do |field_name|
       fields << field_name.intern
     end
     recodes = []
-    dao = Struct.new(self.class.name, *fields)
+    question = Struct.new(self.class.name, *fields)
     res.each do |rec|
-      recode = dao.new(*rec.values)
+      recode = question.new(*rec.values)
       recodes << recode
     end
     recodes
+  end
+
+  def find_by(where = "", *param)
+    where = "where " + where if where != ""
+    query("select * from #{@table.to_s} #{where}", *param)
   end
 end

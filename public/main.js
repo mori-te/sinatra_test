@@ -30,16 +30,18 @@ var vm = new Vue({
             });
         },
         submitted: function () {
-            vm.task = this.$refs['task'].textContent;
-            axios.post('submit_code', {
-                user: vm.user,
-                lang: vm.lang,
-                task: vm.task,
-                result: vm.result,
-                source: vm.source
-            }).then(function(response) {
-
-            })
+            if (confirm('提出しますか？')) {
+                vm.task = this.$refs['task'].textContent;
+                axios.post('submit_code', {
+                    user: vm.user,
+                    lang: vm.lang,
+                    task: vm.task,
+                    result: vm.result,
+                    source: vm.source
+                }).then(function(response) {
+                    alert('提出しました。');
+                })
+            }
         },
         change: function () {
             axios.get("lang?lang=" + this.lang)

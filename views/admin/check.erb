@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>簡易言語学習サイト</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     <link href="common.css" rel="stylesheet">
+    <script defer src="check.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -34,51 +37,26 @@
       </div>
       </div>
     </nav>
-    <div class="container pt-2">
-      <ul class="nav nav-tabs">
-        <li class="nav-item">
-          <a class="nav-link <%= @level_d %>" aria-current="page" href="?level=D">難易度D</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link <%= @level_c %>" href="?level=C">難易度C</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link <%= @level_b %>" href="?level=B">難易度B</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link <%= @level_a %>" href="?level=A">難易度A</a>
-        </li>
-      </ul>      
+    <div id="app" class="container pt-2">
+            <select v-model="user" v-on:change="getSubmmitedList" class="form-select study-item">
+              <option v-for="(item, index) in users" v-bind:value="item.userid">{{item.userid}}</option>
+            </select>
       <table class="table">
         <thead>
           <tr>
-            <th>課題</th><th>難易度</th><th>問題</th><th>更新日</th><th colspan="2"></th>
+            <th>#</th><th>課題</th><th>概要</th><th>提出言語</th><th>作成者</th><th>提出日</th><th colspan="2"></th>
           </tr>
         </thead>
         <tbody>
-          <% @questions.each do |q| %>
-          <tr>
-            <td><%= q['task'] %></td><td><%= q['level'] %></td>
-            <td><a href="/study?no=<%= q['id'] %>"><%= q['outline'] %></a></td>
-            <td><%= q['up_date'].strftime('%Y/%m/%d') %></td>
-            <td>
-              <div class="text-right">
-                <% if q['status'] == 0 %>
-                <button type="button" class="btn btn-primary btn-sm btn-menu">OK</button> &nbsp;
-                <% elsif q['status'] == 1 %>
-                <button type="button" class="btn btn-danger btn-sm btn-menu">NG</button> &nbsp;
-                <% elsif q['submitted'] == 1 %>
-                <button type="button" class="btn btn-warning btn-sm btn-menu">提出済</button> &nbsp;
-                <% end %>
-                <a href="/admin/create_and_edit?no=<%= q['id'] %>">EDIT</a>
-              </div>
+          <tr v-for="(item, index) in list">
+            <td>{{ item.id }}</td><td>{{ item.task }}</td><td>{{ item.outline }}</td><td>{{ item.name }}</td><td>{{ item.cr_user }}</td><td>9999/99/99</td>
+            <td colspan="2">
+                <button type="button" v-on:click="clickOK" v-bind:value="item.pid" class="btn btn-primary btn-sm btn-menu">OK</button> &nbsp;
+                <button type="button" v-on:click="clickNG" v-bind:value="item.pid" class="btn btn-danger btn-sm btn-menu">NG</button> &nbsp;
             </td>
           </tr>
-          <% end %>
         </tbody>
       </table>
-      <a href="/admin/create_and_edit">CREATE</a> &nbsp;
-      <a href="/admin/check">CHECK</a>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
   </body>

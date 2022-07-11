@@ -5,6 +5,7 @@ require 'net/imap'
 require 'json'
 require 'yaml'
 require 'fileutils'
+require 'mysql2'
 require './lib/model'
 require './lib/simplemail'
 
@@ -13,6 +14,9 @@ require './lib/simplemail'
 #
 class FrontController < BaseController
   set :views, (proc { File.join(root, 'views/front') })
+
+  db = Mysql2::Client.new(
+    :host => 'study-mysql', :username => 'root', :password => 'mysql', :encoding => 'utf8', :database => 'study')
 
   # 初期設定
   configure do
@@ -45,7 +49,7 @@ class FrontController < BaseController
        where q.level = '#{level}'
       order by cast(substr(q.task, 3) as signed)
     }
-    res = @@client.query(sql)
+    res = db.query(sql)
     res.each do |row|
       @questions << row
     end
@@ -63,14 +67,14 @@ class FrontController < BaseController
     user, passwd = @params[:user], @params[:passwd]
     begin
       #user = 'mori-te'
-      imap = Net::IMAP.new('mail.tsone.co.jp')
-      imap.authenticate('PLAIN', user, passwd)
+      #imap = Net::IMAP.new('mail.tsone.co.jp')
+      #imap.authenticate('PLAIN', user, passwd)
     rescue Net::IMAP::NoResponseError
       @error = "ユーザまたはパスワードが間違っています！"
     end
 
     if @error != nil
-      erb :home
+      erb :front
     else
       session[:userid] = user
       redirect '/menu'
@@ -98,7 +102,7 @@ class FrontController < BaseController
     session[:no] = no
     
     # 問題取得
-    res = @@client.query("select * from questions where id = #{no}")
+    res = db.query("select * from questions where id = #{no}")
     @question = res.first
     input_type = @question['input_type']
     if input_type == '1'
@@ -217,15 +221,15 @@ class FrontController < BaseController
     type, extension, indent, source = $yaml['LANG'][lang]
     source_file = "/home/#{user}/#{user}.#{extension}"
 
-    languages_dao = Languages.new(@@client)
+    languages_dao = Languages.new(db)
     language = languages_dao.find_by("shot_name = ?", lang).first
-    questions_dao = Questions.new(@@client)
+    questions_dao = Questions.new(db)
     question = questions_dao.find_by("task = ?", task).first
-    teachers_dao = Teachers.new(@@client)
+    teachers_dao = Teachers.new(db)
     teachers = teachers_dao.find_by("lang_id = ?", language.id).first
 
     # 進捗データ登録
-    progresses_dao = Progresses.new(@@client)
+    progresses_dao = Progresses.new(db)
     progresses = progresses_dao.find_by("userid = ? and question_id = ?", user, question.id)
 
     if progresses.size == 0
@@ -233,14 +237,14 @@ class FrontController < BaseController
         INSERT INTO progresses (userid, question_id, lang_id, code, result, status, submitted, cr_user, cr_date, del_flag)
         VALUES (?, ?, ?, ?, ?, null, 1, ?, NOW(), '0')
       }
-      stmt = @@client.prepare(sql)
+      stmt = db.prepare(sql)
       res = stmt.execute(user, question.id, language.id, code, result, user)
     else
       sql = %{
         UPDATE progresses SET lang_id = ?, code = ?, result = ?, status = null, submitted = 1, up_user = ?, up_date = NOW(), del_flag = '0'
         WHERE userid = ? AND question_id = ?
       }
-      stmt = @@client.prepare(sql)
+      stmt = db.prepare(sql)
       res = stmt.execute(language.id, code, result, user, user, question.id)
     end
 

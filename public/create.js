@@ -39,6 +39,10 @@ var vm = new Vue({
             });
         },
         create: function () {
+            if (this.isRequired) {
+                alert("必須項目は必ず入力してください。");
+                return false;
+            }
             const no = this.$refs['no'].value;
             axios.post('create_and_edit_question_api', {
                 no: no,
@@ -70,12 +74,14 @@ var vm = new Vue({
             })
         },
         deleteQuestion: function() {
-            const no = this.$refs['no'].value;
-            axios.post('delete_api', {
-                no: no
-            }).then(function(response) {
-                window.location.href = "/menu?level=" + vm.level;
-            })
+            if (confirm('削除しますか？')) {
+                const no = this.$refs['no'].value;
+                axios.post('delete_api', {
+                    no: no
+                }).then(function(response) {
+                    window.location.href = "/menu?level=" + vm.level;
+                })
+            }
         },
         change: function () {
             axios.get("/lang?lang=" + this.lang)
@@ -112,6 +118,20 @@ var vm = new Vue({
             });
             vm.uploadfile = `[${file["name"]}]`
             this.isEnter = false;
+        }
+    },
+    computed: {
+        isRequired() {
+            if (this.outline == "" || this.question == "" || this.answer == "") {
+                return true;
+            }
+            return false;
+        },
+        isInputFile() {
+            return (this.inputType != 2);
+        },
+        isInputData() {
+            return (this.inputType == 0);
         }
     },
     mounted() {

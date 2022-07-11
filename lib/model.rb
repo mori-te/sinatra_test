@@ -23,8 +23,8 @@ if __FILE__ == $0
 
   #dao = Progresses.new(client)
   dao = Teachers.new(client)
-  res = dao.find_by
+  res = dao.find_by("lang_id = ?", 2)
   res.each do |r|
-    p r
+    p r.userid
   end
 end

@@ -41,7 +41,6 @@ CREATE TABLE progresses (
     del_flag    CHAR(1)
 );
 
-
 -- 先生マスタ
 CREATE TABLE teachers (
     id          INT unsigned NOT NULL,
@@ -58,3 +57,4 @@ CREATE TABLE languages (
     name        VARCHAR(64),         -- 言語名
     del_flag    CHAR(1)
 );
+

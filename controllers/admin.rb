@@ -7,6 +7,9 @@ require_relative 'base'
 #
 class AdminController < BaseController
   set :views, (proc { File.join(root, 'views/admin') })
+  
+  db = Mysql2::Client.new(
+    :host => 'study-mysql', :username => 'root', :password => 'mysql', :encoding => 'utf8', :database => 'study')
 
   # -------
   # 画面表示処理
@@ -27,6 +30,63 @@ class AdminController < BaseController
     @question['no'] = @params['no'] || '0'
     @question['task'] = @question['no'] == '0' ? "新規" : "修正"
     erb :create
+  end
+
+  #
+  # 提出ソースチェック画面表示
+  #
+  get '/check' do
+    redirect '/' unless session[:userid]
+    @userid = session[:userid]
+    erb :check
+  end
+
+  get '/submmited_list_api' do
+    userid = @params['user']
+    sql = %{
+      SELECT q.id, p.id as pid, q.task, p.userid, q.outline, l.name, q.cr_user
+        FROM progresses p join questions q
+          ON p.question_id = q.id join languages l
+          ON p.lang_id = l.id
+       WHERE p.userid = '#{userid}' and p.status is null
+    }
+    p sql
+    res = db.query(sql)
+    recodes = []
+    res.each { |r| recodes << r }
+    p recodes
+    {
+      user: userid,
+      list: recodes
+    }.to_json
+  end
+
+  get '/get_submmited_users_api' do
+    redirect '/' unless session[:userid]
+    res = db.query("select distinct userid from progresses where status is null")
+    recodes = []
+    res.each { |r| recodes << r }
+    p recodes
+    {
+      list: recodes
+    }.to_json
+  end
+
+  post '/set_status_api' do
+    redirect '/' unless session[:userid]
+    userid = session[:userid]
+    json = JSON.parse(request.body.read)
+    no = json["id"]
+    status = json["status"]
+    p json
+    p [no, status]
+
+    sql = %{
+      UPDATE progresses SET status = ?, up_user = ?, up_date = NOW(), del_flag = '0' WHERE id = ?
+    }
+    stmt = db.prepare(sql)
+    res = stmt.execute(status, userid, no)
+    ""
   end
 
   # -------
@@ -57,7 +117,7 @@ class AdminController < BaseController
         INSERT INTO questions (task, level, input_type, parameter, file_name, file_data, outline, question, answer, cr_user, cr_date, up_user, up_date, del_flag)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, NOW(), '0')
       }
-      stmt = @@client.prepare(sql)
+      stmt = db.prepare(sql)
       res = stmt.execute(task, level, input_type, parameter, file_name, file_data, outline, question, answer, userid, userid)
     else
       # 修正
@@ -70,7 +130,7 @@ class AdminController < BaseController
       sql = %{
         UPDATE questions SET task = ?, level = ?, input_type = ?, parameter = ?, file_name = ?, file_data = ?, outline = ?, question = ?, answer = ?, up_user = ?, up_date = NOW(), del_flag = '0' WHERE id = ?
       }
-      stmt = @@client.prepare(sql)
+      stmt = db.prepare(sql)
       res = stmt.execute(task, level, input_type, parameter, file_name, file_data, outline, question, answer, userid, no)
     end
 
@@ -87,7 +147,7 @@ class AdminController < BaseController
     no = params["no"]
     p [userid, no]
     sql = %{ DELETE FROM questions WHERE id = ? AND cr_user = ? }
-    stmt = @@client.prepare(sql)
+    stmt = db.prepare(sql)
     res = stmt.execute(no, userid)
     p res
     ""
@@ -101,7 +161,7 @@ class AdminController < BaseController
     @userid = session[:userid]
     no = @params['no']
 
-    questions_dao = Questions.new(@@client)
+    questions_dao = Questions.new(db)
     qa = questions_dao.find_by("id = ?", no.to_i).first
     input_data = qa.parameter if qa.input_type == "1"
     input_data = qa.file_data if qa.input_type == "2"
@@ -137,7 +197,7 @@ class AdminController < BaseController
   end
   
   def get_task_no(level)
-    res = @@client.query("select substring_index(max(task), '-', -1) as level_max from questions where level = '#{level}'")
+    res = db.query("select substring_index(max(task), '-', -1) as level_max from questions where level = '#{level}'")
     no = res.first["level_max"].to_i + 1
     task = conv_level2no(level).to_s + "-" + no.to_s
   end

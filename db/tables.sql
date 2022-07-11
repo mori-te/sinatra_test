@@ -31,6 +31,7 @@ CREATE TABLE progresses (
     question_id INT unsigned,        -- 問題ID
     lang_id     TINYINT unsigned,    -- 言語ID
     code        MEDIUMTEXT,          -- ソースコード
+    sb_date     DATETIME,            -- 提出日
     result      TEXT,                -- 実行結果
     status      TINYINT unsigned,    -- 状況(0:OK, 1:NG)
     submitted   TINYINT unsigned,    -- 提出フラグ(0:未提出, 1:提出済)
@@ -58,3 +59,9 @@ CREATE TABLE languages (
     del_flag    CHAR(1)
 );
 
+-- ユーザマスタ
+CREATE TABLE users (
+    userid      VARCHAR(64) NOT NULL PRIMARY KEY,  -- ユーザID
+    authority   TINYINT unsigned NOT NULL,         -- 権限(1:先生, 9:管理者)
+    del_flag    CHAR(1)
+)

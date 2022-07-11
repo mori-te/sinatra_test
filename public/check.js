@@ -17,6 +17,10 @@ var vm = new Vue({
             axios.get("get_submmited_users_api")
             .then(function(response) {
                 vm.users = response.data.list;
+                if (vm.users.length > 0) {
+                    vm.user = response.data.list[0].userid;
+                    vm.getSubmmitedList();
+                }
             })
         },
         clickOK: function (e) {
@@ -25,7 +29,7 @@ var vm = new Vue({
                 status: 0
             })
             .then(function(response) {
-                getSubmmitedList();
+                vm.getSubmmitedList();
             })
         },
         clickNG: function (e) {
@@ -34,12 +38,12 @@ var vm = new Vue({
                 status: 1
             })
             .then(function(response) {
-                getSubmmitedList();
+                vm.getSubmmitedList();
             })
         }
     },
     mounted() {
         this.getSubmmitedUsers();
-        this.getSubmmitedList();
+        //this.getSubmmitedList();
     }
 })

@@ -11,27 +11,14 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">簡易言語学習サイト</a>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link active rob-navbar" aria-current="page" href="https://docs.ruby-lang.org/ja/latest/doc/index.html" target="_blank">Ruby Docs</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active rob-navbar" aria-current="page" href="https://docs.oracle.com/javase/jp/8/docs/api/" target="_blank">Java Docs</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active rob-navbar" aria-current="page" href="https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference" target="_blank">JavaScript Docs</a>
-            </li>
+        <div class="dropdown">
+          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+            <%= @userid %>
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+            <li><a class="dropdown-item" href="/logout">ログアウト</a></li>
           </ul>
         </div>
-        <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-          <%= @userid %>
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-          <li><a class="dropdown-item" href="/logout">ログアウト</a></li>
-        </ul>
-      </div>
       </div>
     </nav>
     <div class="container pt-2">
@@ -70,15 +57,19 @@
                 <% elsif q['submitted'] == 1 %>
                 <button type="button" class="btn btn-warning btn-sm btn-menu">提出済</button> &nbsp;
                 <% end %>
+                <% if auth_edit(q['cr_user']) %>
                 <a href="/admin/create_and_edit?no=<%= q['id'] %>">EDIT</a>
+                <% end %>
               </div>
             </td>
           </tr>
           <% end %>
         </tbody>
       </table>
+      <% if auth_create_and_check %>
       <a href="/admin/create_and_edit">CREATE</a> &nbsp;
       <a href="/admin/check">CHECK</a>
+      <% end %>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
   </body>

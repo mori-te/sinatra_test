@@ -18,7 +18,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/cobol/cobol.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/clike/clike.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-codemirror@4.0.0/dist/vue-codemirror.js"></script>
-    <script defer src="create.js"></script>
+    <script type="module" defer src="check_answer.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -56,87 +56,41 @@
       </div>
       </div>
     </nav>
-
-    <style>
-      .row {
-        /*border: solid;*/
-      }
-      .study-label {
-        height: 35px;
-      }
-      .study-item {
-        height: 35px;
-      }
-    </style>
     <div id="app" class="container py-2">
-      <div class="row py-3">
+      <div class="row">
         <div class="col">
-          <h2>課題 <span ref="task"><%= @question['task'] %></span></h2>
-          <input type="hidden" ref="no" value="<%= @question['no'] %>">
-          <p>
-            <select v-model="level" class="form-select study-item">
-              <option value="D">難易度D（容易）</option>
-              <option value="C">難易度C</option>
-              <option value="B">難易度B</option>
-              <option value="A">難易度A</option>
-            </select>
-          </p>
-          <p>
-            概要（必須）
-            <input type="text" id="outline" class="form-control font-monospace" v-model="outline">
-          </p>
-          <p>
-            問題（必須）
-            <textarea id="question" class="form-control font-monospace" rows="5" v-model="question">{{ question }}</textarea>
-          </p>
+          <h2>課題 <span>{{ task }}</span></h2>
+          <input type="hidden" ref="pid" value="<%= @pid %>">
+          <p class="lead">{{ outline }}</p>
+          <p>{{ question }}</p>
         </div>
       </div>
       <div class="row">
-
         <div class="col-lg">
-          <div class="row p-2 study-label">
-            ソースコード
-          </div>
-          <div class="row py-1"></div>
-          <div class="row">
-            <span @keydown.enter.shift.prevent="exec">
-              <codemirror ref="cm" v-model="source" :options="cmOptions"></codemirror>
-            </span>
-          </div>
+          ソースコード
+          <span @keydown.enter.shift.prevent="exec">
+            <codemirror ref="cm" v-model="source" :options="cmOptions"></codemirror>
+          </span>
         </div>
-      
         <div class="col-lg">
-          <div class="row study-label">
-            <div class="col">
-              <select v-model="inputType" class="form-select study-item">
-                <option value="0">入力データなし</option>
-                <option value="1">標準入力データ</option>
-                <option value="2">ファイルデータ</option>
-              </select>
-            </div>
-            <div class="col">
-              <input type="text" class="form-control font-monospace study-item" v-model="inputFileName">
-            </div>
-          </div>
-          <div class="row py-1"></div>
+          {{ inputName }}
           <div class="row">
-            <textarea id="output" class="form-control font-monospace" rows="3" v-model="inputData"><%= @input_data %></textarea>
+            <textarea id="output" class="form-control font-monospace" rows="3" readonly>{{ inputData }}</textarea>
           </div>
           実行結果
           <div class="row">
               <textarea id="output" class="form-control font-monospace study-result" rows="10" readonly>{{ result }}</textarea>
           </div>
-          実行結果（解答）（必須）
+          実行結果（解答）
           <div class="row">
-              <textarea id="output" class="form-control font-monospace" rows="3" v-model="answer"><%= @question['answer'] %></textarea>
+              <textarea id="output" class="form-control font-monospace" rows="3" readonly>{{ answer }}</textarea>
           </div>
         </div>
-      
       </div>
       <br>
       <div class="row">
         <div class="col-lg">
-          <select v-model="lang" v-on:change="change" class="form-select">
+          <select v-model="lang" class="form-select">
             <option value="java">Java</option>
             <option value="ruby">Ruby</option>
             <option value="js">Javascript (node)</option>
@@ -148,12 +102,14 @@
           </select>
         </div>
         <div class="col-lg">
+          <button v-on:click="back" id="back" type="button" class="btn btn-secondary">戻 る</button>
           <button v-on:click="exec" id="run" type="button" class="btn btn-primary float-end">実 行</button>
-          <button v-on:click="create" id="create" type="button" class="btn btn-primary float-end me-md-2">作 成</button>
+          <button type="button" v-on:click="clickNG" value="<%= @pid %>" class="btn btn-danger float-end me-md-4">NG</button> &nbsp;
+          <button type="button" v-on:click="clickOK" value="<%= @pid %>" class="btn btn-primary float-end me-md-2">OK</button> &nbsp;
         </div>
       </div>
+      <div ref="spin"></div>
     </div>
-    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
   </body>
 </html>

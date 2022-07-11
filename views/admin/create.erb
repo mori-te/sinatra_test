@@ -149,6 +149,7 @@
           </select>
         </div>
         <div class="col-lg">
+          <button v-on:click="back" id="back" type="button" class="btn btn-secondary">戻 る</button>
           <button v-on:click="exec" id="run" type="button" class="btn btn-primary float-end">実 行</button>
           <% if @question['no'] == '0' %>
           <button v-on:click="create" id="create" type="button" class="btn btn-primary float-end me-md-2">作 成</button>

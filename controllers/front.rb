@@ -7,16 +7,15 @@ require 'yaml'
 require 'fileutils'
 require 'mysql2'
 require './lib/model'
+require './lib/utils'
 require './lib/simplemail'
+
 
 #
 # フロント機能コントローラ
 #
 class FrontController < BaseController
   set :views, (proc { File.join(root, 'views/front') })
-
-  db = Mysql2::Client.new(
-    :host => 'study-mysql', :username => 'root', :password => 'mysql', :encoding => 'utf8', :database => 'study')
 
   # 初期設定
   configure do
@@ -49,7 +48,7 @@ class FrontController < BaseController
        where q.level = '#{level}'
       order by cast(substr(q.task, 3) as signed)
     }
-    res = db.query(sql)
+    res = @@client.query(sql)
     res.each do |row|
       @questions << row
     end
@@ -64,9 +63,9 @@ class FrontController < BaseController
   # 認証
   #
   post '/auth' do
-    user, passwd = @params[:user], @params[:passwd]
+    userid, passwd = @params[:user], @params[:passwd]
     begin
-      #user = 'mori-te'
+      #userid = 'mori-te'
       #imap = Net::IMAP.new('mail.tsone.co.jp')
       #imap.authenticate('PLAIN', user, passwd)
     rescue Net::IMAP::NoResponseError
@@ -76,7 +75,10 @@ class FrontController < BaseController
     if @error != nil
       erb :front
     else
-      session[:userid] = user
+      users_dao = Users.new(@@client)
+      user = users_dao.find_by("userid = ?", userid).first
+      session[:authority] = user != nil ? user.authority : 0
+      session[:userid] = userid
       redirect '/menu'
     end
   end
@@ -102,17 +104,17 @@ class FrontController < BaseController
     session[:no] = no
     
     # 問題取得
-    res = db.query("select * from questions where id = #{no}")
+    res = @@client.query("select * from questions where id = #{no}")
     @question = res.first
     input_type = @question['input_type']
     if input_type == '1'
       @input_type = '標準入力データ'
       @input_data = @question['parameter']
-      set_input_file(@userid, '.input.txt', @question['parameter'])
+      STUDY::Utils.set_input_file(@userid, '.input.txt', @question['parameter'])
     elsif input_type == '2'
       @input_type = "入力ファイル（#{@question['file_name']}）"
       @input_data = @question['file_data']
-      set_input_file(@userid, @question['file_name'], @question['file_data'])
+      STUDY::Utils.set_input_file(@userid, @question['file_name'], @question['file_data'])
     else
       @input_type = '入力データなし'
       @input_data = '-'
@@ -126,8 +128,8 @@ class FrontController < BaseController
 
   # ruby実行・結果出力
   post '/exec_ruby' do
-    source_file, user = write_source_file(request.body.read, 'rb')
-    result = exec_source_file(user, "ruby #{source_file}")
+    source_file, user = STUDY::Utils.write_source_file(request.body.read, 'rb')
+    result = STUDY::Utils.exec_source_file(user, "ruby #{source_file}")
     { result: result }.to_json
   end
 
@@ -149,49 +151,49 @@ class FrontController < BaseController
     rescue
     end
 
-    result = exec_source_file(user, "javac #{source_file} && java #{exec_name}")
+    result = STUDY::Utils.exec_source_file(user, "javac #{source_file} && java #{exec_name}")
     { result: result }.to_json
   end
 
   # javascript実行・結果出力
   post '/exec_js' do
-    source_file, user = write_source_file(request.body.read, 'js')
-    result = exec_source_file(user, "node #{source_file}")
+    source_file, user = STUDY::Utils.write_source_file(request.body.read, 'js')
+    result = STUDY::Utils.exec_source_file(user, "node #{source_file}")
     { result: result }.to_json
   end
 
   # python実行・結果出力
   post '/exec_python' do
-    source_file, user = write_source_file(request.body.read, 'py')
-    result = exec_source_file(user, "python3.10 #{source_file}")
+    source_file, user = STUDY::Utils.write_source_file(request.body.read, 'py')
+    result = STUDY::Utils.exec_source_file(user, "python3.10 #{source_file}")
     { result: result }.to_json
   end
 
   # go実行・結果出力
   post '/exec_golang' do
-    source_file, user = write_source_file(request.body.read, 'go')
-    result = exec_source_file(user, "go run #{source_file}")
+    source_file, user = STUDY::Utils.write_source_file(request.body.read, 'go')
+    result = STUDY::Utils.exec_source_file(user, "go run #{source_file}")
     { result: result }.to_json
   end
 
   # COBOL実行・結果出力
   post '/exec_cobol' do
-    source_file, user = write_source_file(request.body.read, 'cbl')
-    result = exec_source_file(user, "cobc -x #{source_file} && #{source_file.sub('.cbl', '')}")
+    source_file, user = STUDY::Utils.write_source_file(request.body.read, 'cbl')
+    result = STUDY::Utils.exec_source_file(user, "cobc -x #{source_file} && #{source_file.sub('.cbl', '')}")
     { result: result }.to_json
   end
 
   # CASL2実行・結果出力
   post '/exec_casl2' do
-    source_file, user = write_source_file(request.body.read, 'cas')
-    result = exec_source_file(user, "node-casl2 #{source_file} && node-comet2 -r #{source_file.sub('.cas', '.com')}")
+    source_file, user = STUDY::Utils.write_source_file(request.body.read, 'cas')
+    result = STUDY::Utils.exec_source_file(user, "node-casl2 #{source_file} && node-comet2 -r #{source_file.sub('.cas', '.com')}")
     { result: result }.to_json
   end
 
   # C言語実行・結果出力
   post '/exec_clang' do
-    source_file, user = write_source_file(request.body.read, 'c')
-    result = exec_source_file(user, "cc #{source_file} && ./a.out")
+    source_file, user = STUDY::Utils.write_source_file(request.body.read, 'c')
+    result = STUDY::Utils.exec_source_file(user, "cc #{source_file} && ./a.out")
     { result: result }.to_json
   end
 
@@ -221,15 +223,15 @@ class FrontController < BaseController
     type, extension, indent, source = $yaml['LANG'][lang]
     source_file = "/home/#{user}/#{user}.#{extension}"
 
-    languages_dao = Languages.new(db)
+    languages_dao = Languages.new(@@client)
     language = languages_dao.find_by("shot_name = ?", lang).first
-    questions_dao = Questions.new(db)
+    questions_dao = Questions.new(@@client)
     question = questions_dao.find_by("task = ?", task).first
-    teachers_dao = Teachers.new(db)
+    teachers_dao = Teachers.new(@@client)
     teachers = teachers_dao.find_by("lang_id = ?", language.id).first
 
     # 進捗データ登録
-    progresses_dao = Progresses.new(db)
+    progresses_dao = Progresses.new(@@client)
     progresses = progresses_dao.find_by("userid = ? and question_id = ?", user, question.id)
 
     if progresses.size == 0
@@ -237,14 +239,14 @@ class FrontController < BaseController
         INSERT INTO progresses (userid, question_id, lang_id, code, result, status, submitted, cr_user, cr_date, del_flag)
         VALUES (?, ?, ?, ?, ?, null, 1, ?, NOW(), '0')
       }
-      stmt = db.prepare(sql)
+      stmt = @@client.prepare(sql)
       res = stmt.execute(user, question.id, language.id, code, result, user)
     else
       sql = %{
         UPDATE progresses SET lang_id = ?, code = ?, result = ?, status = null, submitted = 1, up_user = ?, up_date = NOW(), del_flag = '0'
         WHERE userid = ? AND question_id = ?
       }
-      stmt = db.prepare(sql)
+      stmt = @@client.prepare(sql)
       res = stmt.execute(language.id, code, result, user, user, question.id)
     end
 
@@ -283,47 +285,29 @@ class FrontController < BaseController
     ""
   end
 
-  # -------
-  # 共通処理
-  # -------
+  #
+  # ヘルパーメソッド
+  #
 
-  # ソースコードサーバ出力
-  def write_source_file(body, suffix)
-    json = JSON.parse(body)
-    user = json['user']
-    source_file = "/home/#{user}/#{user}.#{suffix}"
-    File.open(source_file, 'w') do |io|
-      io.print(json['source'])
-    end
-    FileUtils.chown(user, user, [source_file])
-    [source_file, user]
-  end
-
-  # ソースコード実行処理
-  def exec_source_file(user, cmd)
-    result = nil
-    begin
-      IO.popen(['su', '-', user, '-c', "#{cmd}", :err => [:child, :out]], 'r+') do |io|
-        # 標準入力データ
-        File.open("/home/#{user}/.input.txt", "r").each do |buf|
-          io.print(buf)
-        end
-        io.close_write
-        result = io.read
+  helpers do
+    # 修正権限有無
+    def auth_edit(cr_user)
+      ret = false
+      if session[:authority] == 9 or (session[:authority] >= 1 and cr_user == session[:userid])
+        ret = true
       end
-    rescue
-      result = $!
+      ret
     end
-    result
-  end
 
-  # 入力データサーバ出力処理
-  def set_input_file(user, file_name, data)
-    input_data_file = "/home/#{user}/#{file_name}"
-    File.open(input_data_file, "w") do |io|
-        io.print(data)
+    # 作成＆チェック権限有無
+    def auth_create_and_check
+      ret = false
+      if session[:authority] > 0
+        ret = true
+      end
+      ret
     end
-    FileUtils.chown(user, user, [input_data_file])
-  end  
+
+  end
 
 end

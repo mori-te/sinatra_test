@@ -1,5 +1,9 @@
+import {Spinner} from 'https://cdnjs.cloudflare.com/ajax/libs/spin.js/4.1.1/spin.js';
+
+const spinner = new Spinner({color: '#999999'});
 const VueCodemirror = window.VueCodemirror;
 Vue.use(VueCodemirror);
+// メイン処理
 var vm = new Vue({
     el: "#app",
     data: {
@@ -21,12 +25,14 @@ var vm = new Vue({
     },
     methods: {
         exec: function () {
+            spinner.spin(this.$refs.spin);
             axios.post('exec_' + vm.lang, {
                 user: vm.user,
                 lang: vm.lang,
                 source: vm.source
             }).then(function (response) {
                 vm.result = response.data.result;
+                spinner.stop();
             });
         },
         submitted: function () {
@@ -51,6 +57,10 @@ var vm = new Vue({
                 vm.cmOptions.indentUnit = response.data.indent;
                 vm.source = response.data.source;
             });
+        },
+        back: function () {
+            const level = this.$refs['level'].value;
+            window.location.href = "/menu?level=" + level;
         },
         getUserId: function () {
             axios.get("userid")

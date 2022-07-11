@@ -19,6 +19,8 @@ class BaseController < Sinatra::Base
   enable :sessions
 
   configure do
+    @@client = Mysql2::Client.new(
+      :host => 'study-mysql', :username => 'root', :password => 'mysql', :encoding => 'utf8', :database => 'study')
   end
 
  

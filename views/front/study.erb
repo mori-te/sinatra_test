@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>簡易言語学習サイト</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spin.js/4.1.1/spin.css" />
     <link href="common.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
@@ -18,7 +19,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/cobol/cobol.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/clike/clike.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-codemirror@4.0.0/dist/vue-codemirror.js"></script>
-    <script defer src="main.js"></script>
+    <script type="module" defer src="main.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -60,6 +61,7 @@
       <div class="row">
         <div class="col">
           <h2>課題 <span ref="task"><%= @question['task'] %></span></h2>
+          <input type="hidden" ref="level" value="<%= @question['level'] %>">
           <p class="lead">
           <%= @question['outline'] %>
           </p>
@@ -105,11 +107,12 @@
           </select>
         </div>
         <div class="col-lg">
-          <button id="save" type="button" class="btn btn-secondary">保 存</button>
+          <button v-on:click="back" id="back" type="button" class="btn btn-secondary">戻 る</button>
           <button v-on:click="exec" id="run" type="button" class="btn btn-primary float-end">実 行</button>
           <button v-on:click="submitted" id="submitted" type="button" class="btn btn-primary float-end me-md-2">提 出</button>
         </div>
       </div>
+      <div ref="spin"></div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
   </body>

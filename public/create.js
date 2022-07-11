@@ -57,7 +57,7 @@ var vm = new Vue({
                 user: vm.user,
                 source: vm.source
             }).then(function(response) {
-
+                window.location.href = "/menu?level=" + vm.level;
             })
         },
         edit: function (no) {
@@ -91,6 +91,9 @@ var vm = new Vue({
                 vm.cmOptions.indentUnit = response.data.indent;
                 vm.source = response.data.source;
             });
+        },
+        back: function () {
+            window.location.href = "/menu?level=" + vm.level;
         },
         getUserId: function () {
             axios.get("/userid")

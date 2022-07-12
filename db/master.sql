@@ -48,3 +48,15 @@ INSERT INTO languages (
 ), (
     8, 'clang', 'C言語', '0'
 );
+
+
+
+INSERT INTO users (
+    userid, authority, del_flag
+) values (
+    'mori-te', 9, '0'
+), (
+    'nakamura-ma', 1, '0'
+), (
+    'guest', 0, '0'
+)

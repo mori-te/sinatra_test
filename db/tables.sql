@@ -62,6 +62,8 @@ CREATE TABLE languages (
 -- ユーザマスタ
 CREATE TABLE users (
     userid      VARCHAR(64) NOT NULL PRIMARY KEY,  -- ユーザID
-    authority   TINYINT unsigned NOT NULL,         -- 権限(1:先生, 9:管理者)
+    passwd      VARCHAR(32),                       -- パスワード
+    auth_type   TINYINT NOT NULL                   -- 0:通常, 1:IMAP
+    authority   TINYINT unsigned NOT NULL,         -- 権限(0:生徒, 1:先生, 9:管理者)
     del_flag    CHAR(1)
-)
+);

@@ -65,7 +65,11 @@ class FrontController < BaseController
   post '/auth' do
     userid, passwd = @params[:user], @params[:passwd]
     begin
-      #userid = 'mori-te'
+      users_dao = Users.new(@@client)
+      user = users_dao.find_by("userid = ?", userid).first
+      if user == nil
+        @error = "権限がありません。管理者に問合せて下さい。"
+      end
       #imap = Net::IMAP.new('mail.tsone.co.jp')
       #imap.authenticate('PLAIN', user, passwd)
     rescue Net::IMAP::NoResponseError
@@ -75,9 +79,7 @@ class FrontController < BaseController
     if @error != nil
       erb :front
     else
-      users_dao = Users.new(@@client)
-      user = users_dao.find_by("userid = ?", userid).first
-      session[:authority] = user != nil ? user.authority : 0
+      session[:authority] = user.authority
       session[:userid] = userid
       redirect '/menu'
     end

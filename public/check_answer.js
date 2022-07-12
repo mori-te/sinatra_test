@@ -47,7 +47,7 @@ var vm = new Vue({
                 vm.result = response.data.question.result;
                 vm.answer = response.data.question.answer;
                 vm.userid = response.data.question.userid;
-                vm.cr_user = response.data.question.cr_user;
+                vm.createUser = response.data.question.cr_user;
             })
         },
         exec: function () {

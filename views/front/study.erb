@@ -60,14 +60,11 @@
     <div id="app" class="container py-2">
       <div class="row">
         <div class="col">
-          <h2>課題 <span ref="task"><%= @question['task'] %></span></h2>
-          <input type="hidden" ref="level" value="<%= @question['level'] %>">
-          <input type="hidden" ref="no" value="<%= @question['id'] %>">
-          <p class="lead">
-          <%= @question['outline'] %>
-          </p>
+          <h2>課題 <span ref="task">{{ task }}</span></h2>
+          <input type="hidden" ref="no" value="<%= @no %>">
+          <p class="lead">{{ outline }}</p>
           <p>
-          <div v-html="compiledMarkdown"></div>
+            <div v-html="compiledMarkdown"></div>
           </p>
         </div>
       </div>
@@ -79,9 +76,9 @@
           </span>
         </div>
         <div class="col-lg">
-          <%= @input_type %>
+          {{ inputName }}
           <div class="row">
-            <textarea id="output" class="form-control font-monospace" rows="3" readonly><%= @input_data %></textarea>
+            <textarea id="output" class="form-control font-monospace" rows="3" readonly>{{ inputData }}</textarea>
           </div>
           実行結果
           <div class="row">
@@ -89,7 +86,7 @@
           </div>
           実行結果（解答）
           <div class="row">
-              <textarea id="output" class="form-control font-monospace" rows="3" readonly><%= @question['answer'] %></textarea>
+              <textarea id="output" class="form-control font-monospace" rows="3" readonly>{{ answer }}</textarea>
           </div>
         </div>
       </div>

@@ -51,14 +51,14 @@
             <td>
               <div class="text-right">
                 <% if q['status'] == 0 %>
-                <button type="button" class="btn btn-primary btn-sm btn-menu">OK</button> &nbsp;
+                <span class="badge bg-primary study-status">OK</span>
                 <% elsif q['status'] == 1 %>
-                <button type="button" class="btn btn-danger btn-sm btn-menu">NG</button> &nbsp;
+                <span class="badge bg-danger study-status">NG</span>
                 <% elsif q['submitted'] == 1 %>
-                <button type="button" class="btn btn-warning btn-sm btn-menu">提出済</button> &nbsp;
+                <span class="badge bg-warning study-status">提出済</span>
                 <% end %>
                 <% if auth_edit(q['cr_user']) %>
-                <a href="/admin/create_and_edit?no=<%= q['id'] %>">EDIT</a>
+                &nbsp; <a href="/admin/create_and_edit?no=<%= q['id'] %>">EDIT</a>
                 <% end %>
               </div>
             </td>

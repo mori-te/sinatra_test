@@ -8,8 +8,6 @@ var vm = new Vue({
     el: "#app",
     data: {
         user: '',
-        source: "",
-        result: "-",
         lang: 'java',
         cmOptions: {
             tabSize: 4,
@@ -20,10 +18,16 @@ var vm = new Vue({
             theme: 'lesser-dark'
         },
         task: "",
-        uploadfile: "",
+        outline: "",
+        question: "",
+        source: "",
+        inputName: "",
+        inputData: "",
+        inputFileName: "",
+        result: "-",
+        answer: "",
         isEnter: false,
-        isProcessing: false,
-        question: ""
+        isProcessing: false
     },
     methods: {
         exec: function () {
@@ -41,7 +45,6 @@ var vm = new Vue({
         },
         submitted: function () {
             if (confirm('提出しますか？')) {
-                vm.task = this.$refs['task'].textContent;
                 axios.post('submit_code', {
                     user: vm.user,
                     lang: vm.lang,
@@ -63,8 +66,7 @@ var vm = new Vue({
             });
         },
         back: function () {
-            const level = this.$refs['level'].value;
-            window.location.href = "/menu?level=" + level;
+            window.location.href = "/menu?level=" + vm.level;
         },
         getUserId: function () {
             axios.get("userid")
@@ -76,7 +78,17 @@ var vm = new Vue({
             const no = this.$refs['no'].value;
             axios.get("get_question_api?no=" + no)
             .then(function(response) {
-                vm.question = response.data.question;
+                vm.task = response.data.question.task;
+                vm.level = response.data.question.level;
+                vm.outline = response.data.question.outline;
+                vm.question = response.data.question.question;
+                vm.source = response.data.question.code || vm.source;
+                vm.lang = response.data.question.shot_name || vm.lang;
+                vm.inputName = response.data.input_type;
+                vm.inputData = response.data.input_data;
+                vm.inputFileName = response.data.question.input_file_name;
+                vm.result = response.data.question.result;
+                vm.answer = response.data.question.answer;
             })
         }
     },
@@ -86,8 +98,11 @@ var vm = new Vue({
         }
     },
     mounted() {
-        this.change();
-        this.getUserId();
         this.getQuestion();
+        if (this.source == "") {
+            this.lang = 'java';
+            this.change();
+        }
+        this.getUserId();
     }
 })

@@ -52,11 +52,16 @@ INSERT INTO languages (
 
 
 INSERT INTO users (
-    userid, authority, del_flag
+    userid, passwd, auth_type, authority, del_flag
 ) values (
-    'mori-te', 9, '0'
+    'mori-te', null, 1, 9, '0'
 ), (
-    'nakamura-ma', 1, '0'
+    'mori-te2', SHA2('mori-te2', 512), 0, 1, '0'
 ), (
-    'guest', 0, '0'
-)
+    'mori-te3', SHA2('mori-te3', 512), 0, 0, '0'
+), (
+    'nakamura-ma', null, 1, 1, '0'
+), (
+    'guest', SHA2('guest!', 512), 0, 0, '0'
+);
+

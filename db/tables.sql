@@ -44,7 +44,7 @@ CREATE TABLE progresses (
 
 -- 先生マスタ
 CREATE TABLE teachers (
-    id          INT unsigned NOT NULL,
+    id          INT unsigned NOT NULL PRIMARY KEY,
     lang_id     TINYINT unsigned,    -- 言語ID
     userid      VARCHAR(64),         -- ユーザID
     del_flag    CHAR(1)
@@ -62,8 +62,8 @@ CREATE TABLE languages (
 -- ユーザマスタ
 CREATE TABLE users (
     userid      VARCHAR(64) NOT NULL PRIMARY KEY,  -- ユーザID
-    passwd      VARCHAR(32),                       -- パスワード
-    auth_type   TINYINT NOT NULL                   -- 0:通常, 1:IMAP
+    passwd      VARCHAR(128),                      -- パスワード(SHA512)
+    auth_type   TINYINT NOT NULL,                  -- 0:通常, 1:IMAP
     authority   TINYINT unsigned NOT NULL,         -- 権限(0:生徒, 1:先生, 9:管理者)
     del_flag    CHAR(1)
 );

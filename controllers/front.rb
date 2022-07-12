@@ -6,6 +6,7 @@ require 'json'
 require 'yaml'
 require 'fileutils'
 require 'mysql2'
+require 'digest/sha2'
 require './lib/model'
 require './lib/utils'
 require './lib/simplemail'
@@ -67,11 +68,20 @@ class FrontController < BaseController
     begin
       users_dao = Users.new(@@client)
       user = users_dao.find_by("userid = ?", userid).first
-      if user == nil
+      if user != nil
+        if user.auth_type == 1
+          imap = Net::IMAP.new('mail.tsone.co.jp')
+          imap.authenticate('PLAIN', userid, passwd)
+        elsif user.auth_type == 0
+          if user.passwd != Digest::SHA512.hexdigest(passwd)
+            @error = "ユーザまたはパスワードが間違っています！"
+          end
+        else
+          @error = "ユーザまたはパスワードが間違っています！"
+        end
+      else
         @error = "権限がありません。管理者に問合せて下さい。"
       end
-      #imap = Net::IMAP.new('mail.tsone.co.jp')
-      #imap.authenticate('PLAIN', user, passwd)
     rescue Net::IMAP::NoResponseError
       @error = "ユーザまたはパスワードが間違っています！"
     end
@@ -101,16 +111,41 @@ class FrontController < BaseController
     redirect '/' unless session[:userid]
 
     # パラメータ・セッション情報取得
+    @no = @params['no']
+    @userid = session[:userid]
+    session[:no] = @no
+
+    erb :study
+  end
+
+  # -------
+  # WEBAPI
+  # -------
+
+  #
+  # 問題の取得API
+  #
+  get '/get_question_api' do
+    redirect '/' unless session[:userid]
     no = @params['no']
     @userid = session[:userid]
-    session[:no] = no
-    
-    # 問題取得
-    res = @@client.query("select * from questions where id = #{no}")
+
+    sql = %{
+      SELECT
+        q.level, q.task, q.outline, q.question, p.code, l.shot_name, q.input_type, q.parameter, q.file_name, q.file_data, p.result, q.answer, p.userid, q.cr_user
+      FROM
+        questions q
+        LEFT OUTER JOIN progresses p ON p.question_id = q.id and p.userid = '#{@userid}'
+        LEFT OUTER JOIN languages l ON p.lang_id = l.id
+      WHERE
+        q.id = #{no};
+    }
+    res = @@client.query(sql)
     @question = res.first
     input_type = @question['input_type']
     if input_type == '1'
       @input_type = '標準入力データ'
+      p [@input_type, @userid, @question['parameter']]
       @input_data = @question['parameter']
       STUDY::Utils.set_input_file(@userid, '.input.txt', @question['parameter'])
     elsif input_type == '2'
@@ -121,19 +156,12 @@ class FrontController < BaseController
       @input_type = '入力データなし'
       @input_data = '-'
     end
-    erb :study
+    {
+      question: @question,
+      input_type: @input_type,
+      input_data: @input_data
+    }.to_json
   end
-
-  get '/get_question_api' do
-    no = @params['no']
-    question_dao = Questions.new(@@client)
-    question = question_dao.find_by("id = ?", no).first
-    question.to_h.to_json
-  end
-
-  # -------
-  # WEBAPI
-  # -------
 
   # ruby実行・結果出力
   post '/exec_ruby' do

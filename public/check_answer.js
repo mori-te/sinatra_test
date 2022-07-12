@@ -28,6 +28,8 @@ var vm = new Vue({
         outline: "",
         question: "",
         answer: "",
+        createUser: "",
+        userid: "",
         no: 0,
         isProcessing: false
     },

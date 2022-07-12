@@ -28,7 +28,8 @@ var vm = new Vue({
         outline: "",
         question: "",
         answer: "",
-        no: 0
+        no: 0,
+        isProcessing: false
     },
     methods: {
         check_answer: function (pid) {
@@ -50,6 +51,7 @@ var vm = new Vue({
             })
         },
         exec: function () {
+            vm.isProcessing = true;
             spinner.spin(this.$refs.spin);
             axios.post('/exec_' + vm.lang, {
                 user: vm.user,
@@ -59,6 +61,7 @@ var vm = new Vue({
             }).then(function (response) {
                 vm.result = response.data.result;
                 spinner.stop();
+                vm.isProcessing = false;
             });
         },
         back: function () {

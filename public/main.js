@@ -21,10 +21,12 @@ var vm = new Vue({
         },
         task: "",
         uploadfile: "",
-        isEnter: false
+        isEnter: false,
+        isProcessing: false
     },
     methods: {
         exec: function () {
+            vm.isProcessing = true;
             spinner.spin(this.$refs.spin);
             axios.post('exec_' + vm.lang, {
                 user: vm.user,
@@ -33,6 +35,7 @@ var vm = new Vue({
             }).then(function (response) {
                 vm.result = response.data.result;
                 spinner.stop();
+                vm.isProcessing = false;
             });
         },
         submitted: function () {

@@ -2,6 +2,7 @@
 #
 #
 require_relative 'basedao'
+require "json/add/core"
 
 # 問題データDAO
 class Questions < BaseDao; end
@@ -27,5 +28,5 @@ if __FILE__ == $0
   #dao = Progresses.new(client)
   dao = Users.new(client)
   res = dao.find_by("userid = ?", "mori-te").first
-  p res
+  p res.to_h.to_json
 end

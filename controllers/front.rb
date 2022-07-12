@@ -122,6 +122,13 @@ class FrontController < BaseController
     erb :study
   end
 
+  get '/get_question_api' do
+    no = @params['no']
+    question_dao = Questions.new(@@client)
+    question = question_dao.find_by("id = ?", no).first
+    question.to_h.to_json
+  end
+
   # -------
   # WEBAPI
   # -------

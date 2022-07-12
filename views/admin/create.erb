@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>簡易言語学習サイト</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spin.js/4.1.1/spin.css" />
     <link href="common.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
@@ -18,7 +19,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/cobol/cobol.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/clike/clike.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-codemirror@4.0.0/dist/vue-codemirror.js"></script>
-    <script defer src="create.js"></script>
+    <script type="module" defer src="create.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -87,10 +88,19 @@
           </p>
           <p>
             問題（必須）
-            <textarea id="question" class="form-control font-monospace" rows="5" v-model="question">{{ question }}</textarea>
+            <ul class="nav nav-tabs">
+              <li v-for="tab in tabs" v-bind:key="tab" v-on:click="currentTab = tab">
+                <a class="nav-link" v-bind:class="{ active: currentTab === tab }" href="javascript:void(0)">{{ tab }}</a>
+              </li>
+            </ul>
+              <textarea id="question" class="form-control font-monospace" rows="5" class="md" v-model="question" @input="update" v-show="isShowText">{{ question }}</textarea>
+              <!--
+              <textarea id="question" class="form-control font-monospace" rows="5" class="md" :value="question" @input="update" rows="10" v-show="isShowText"></textarea>
+              -->
+              <div v-html="compiledMarkdown" v-show="isShowPreview"></div>
           </p>
         </div>
-        <p v-if="isRequired" class="error">必須項目は必ず入力してください。</p>
+        <p v-if="isRequired" class="study-error">必須項目は必ず入力してください。</p>
       </div>
       <div class="row">
 
@@ -150,18 +160,21 @@
         </div>
         <div class="col-lg">
           <button v-on:click="back" id="back" type="button" class="btn btn-secondary">戻 る</button>
-          <button v-on:click="exec" id="run" type="button" class="btn btn-primary float-end">実 行</button>
+          <button v-on:click="exec" id="run" type="button" class="btn btn-primary float-end" v-bind:disabled="isProcessing">実 行</button>
           <% if @question['no'] == '0' %>
-          <button v-on:click="create" id="create" type="button" class="btn btn-primary float-end me-md-2">作 成</button>
+          <button v-on:click="create" id="create" type="button" class="btn btn-primary float-end me-md-2" v-bind:disabled="isProcessing">作 成</button>
           <% else %>
-          <button v-on:click="create" id="create" type="button" class="btn btn-primary float-end me-md-2">修 正</button>
-          <button v-on:click="deleteQuestion" id="delete" type="button" class="btn btn-secondary float-end me-md-2">削 除</button>
+          <button v-on:click="create" id="create" type="button" class="btn btn-primary float-end me-md-2" v-bind:disabled="isProcessing">修 正</button>
+          <button v-on:click="deleteQuestion" id="delete" type="button" class="btn btn-secondary float-end me-md-2" v-bind:disabled="isProcessing">削 除</button>
           <% end %>
           </button>
         </div>
       </div>
+      <div ref="spin"></div>
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/marked@0.3.6/lib/marked.js"></script>
+    <script src="https://unpkg.com/lodash@4.16.0/lodash.js"></script>
   </body>
 </html>

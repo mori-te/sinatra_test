@@ -22,7 +22,8 @@ var vm = new Vue({
         task: "",
         uploadfile: "",
         isEnter: false,
-        isProcessing: false
+        isProcessing: false,
+        question: ""
     },
     methods: {
         exec: function () {
@@ -71,30 +72,22 @@ var vm = new Vue({
                 vm.user = response.data.userid;
             })
         },
-        dragEnter: function () {
-            this.isEnter = true;
-        },
-        dragLeave: function () {
-            this.isEnter = false;
-        },
-        dragOver: function () {
-            console.log("dragover");
-        },
-        dropFile: function (e) {
-            const file = e.dataTransfer.files[0]
-            let form = new FormData();
-            form.append('file', file);
-            form.append('user', vm.user);
-            axios.post("upload", form)
+        getQuestion: function () {
+            const no = this.$refs['no'].value;
+            axios.get("get_question_api?no=" + no)
             .then(function(response) {
-                console.log(response.data);
-            });
-            vm.uploadfile = `[${file["name"]}]`
-            this.isEnter = false;
+                vm.question = response.data.question;
+            })
+        }
+    },
+    computed: {
+        compiledMarkdown() {
+            return marked(this.question, { sanitize: true });
         }
     },
     mounted() {
         this.change();
         this.getUserId();
+        this.getQuestion();
     }
 })

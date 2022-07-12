@@ -1,3 +1,6 @@
+import {Spinner} from 'https://cdnjs.cloudflare.com/ajax/libs/spin.js/4.1.1/spin.js';
+
+const spinner = new Spinner({color: '#999999'});
 const VueCodemirror = window.VueCodemirror;
 Vue.use(VueCodemirror);
 var vm = new Vue({
@@ -25,10 +28,15 @@ var vm = new Vue({
         outline: "",
         question: "",
         answer: "",
+        currentTab: "TEXT",
+        tabs: ["TEXT", "PREVIEW"],
+        isProcessing: false,
         no: 0
     },
     methods: {
         exec: function () {
+            vm.isProcessing = true;
+            spinner.spin(this.$refs.spin);
             axios.post('/exec_' + vm.lang, {
                 user: vm.user,
                 lang: vm.lang,
@@ -36,6 +44,8 @@ var vm = new Vue({
                 mode: 1
             }).then(function (response) {
                 vm.result = response.data.result;
+                spinner.stop();
+                vm.isProcessing = false;
             });
         },
         create: function () {
@@ -101,27 +111,9 @@ var vm = new Vue({
                 vm.user = response.data.userid;
             })
         },
-        dragEnter: function () {
-            this.isEnter = true;
-        },
-        dragLeave: function () {
-            this.isEnter = false;
-        },
-        dragOver: function () {
-            console.log("dragover");
-        },
-        dropFile: function (e) {
-            const file = e.dataTransfer.files[0]
-            let form = new FormData();
-            form.append('file', file);
-            form.append('user', vm.user);
-            axios.post("upload", form)
-            .then(function(response) {
-                console.log(response.data);
-            });
-            vm.uploadfile = `[${file["name"]}]`
-            this.isEnter = false;
-        }
+        update: _.debounce(function(e) {
+            this.question = e.target.value;
+        }, 300)
     },
     computed: {
         isRequired() {
@@ -135,6 +127,15 @@ var vm = new Vue({
         },
         isInputData() {
             return (this.inputType == 0);
+        },
+        compiledMarkdown() {
+            return marked(this.question, { sanitize: true });
+        },
+        isShowText() {
+            return this.currentTab == this.tabs[0];
+        },
+        isShowPreview() {
+            return this.currentTab == this.tabs[1];
         }
     },
     mounted() {

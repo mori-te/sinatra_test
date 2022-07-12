@@ -98,6 +98,7 @@ pre code {
     background-color: rgb(248, 248, 248);
     border: 1px solid #ddd;
     color: #555!important;
+    border-radius: 4px;
 }
 
 .study-error {

@@ -290,10 +290,13 @@ class FrontController < BaseController
     # メール文章作成
     template = $yaml['MAIL']['MESSAGE']
 
-    if question.input_type == "1"
+    if question.input_type == "0"
+      input = "入力なし"
+      data = ""
+    elsif question.input_type == "1"
       input = "標準入力"
       data = question.parameter
-    else question.input_type == "2"
+    elsif question.input_type == "2"
       input = "#{question.file_name}ファイル"
       data = question.file_data
     end

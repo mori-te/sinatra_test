@@ -31,6 +31,8 @@ class FrontController < BaseController
   # ログイン
   #
   get '/' do
+    @back_url = @params[:back]
+
     erb :front
   end
 
@@ -91,7 +93,7 @@ class FrontController < BaseController
     else
       session[:authority] = user.authority
       session[:userid] = userid
-      redirect '/menu'
+      redirect @params[:back] || '/menu'
     end
   end
 
@@ -144,17 +146,13 @@ class FrontController < BaseController
     @question = res.first
     input_type = @question['input_type']
     if input_type == '1'
-      @input_type = '標準入力データ'
-      p [@input_type, @userid, @question['parameter']]
-      @input_data = @question['parameter']
+      @input_type, @input_data = '標準入力データ', @question['parameter']
       STUDY::Utils.set_input_file(@userid, '.input.txt', @question['parameter'])
     elsif input_type == '2'
-      @input_type = "入力ファイル（#{@question['file_name']}）"
-      @input_data = @question['file_data']
+      @input_type, @input_data = "入力ファイル（#{@question['file_name']}）", @question['file_data']
       STUDY::Utils.set_input_file(@userid, @question['file_name'], @question['file_data'])
     else
-      @input_type = '入力データなし'
-      @input_data = '-'
+      @input_type, @input_data = '入力データなし', '-'
     end
     {
       question: @question,
@@ -273,37 +271,54 @@ class FrontController < BaseController
 
     if progresses.size == 0
       sql = %{
-        INSERT INTO progresses (userid, question_id, lang_id, code, result, status, submitted, cr_user, cr_date, del_flag)
-        VALUES (?, ?, ?, ?, ?, null, 1, ?, NOW(), '0')
+        INSERT INTO progresses (userid, question_id, lang_id, code, sb_date, result, status, submitted, cr_user, cr_date, del_flag)
+        VALUES (?, ?, ?, ?, NOW(), ?, null, 1, ?, NOW(), '0')
       }
       stmt = @@client.prepare(sql)
       res = stmt.execute(user, question.id, language.id, code, result, user)
     else
       sql = %{
-        UPDATE progresses SET lang_id = ?, code = ?, result = ?, status = null, submitted = 1, up_user = ?, up_date = NOW(), del_flag = '0'
+        UPDATE progresses SET lang_id = ?, code = ?, sb_date = NOW(), result = ?, status = null, submitted = 1, up_user = ?, up_date = NOW(), del_flag = '0'
         WHERE userid = ? AND question_id = ?
       }
       stmt = @@client.prepare(sql)
       res = stmt.execute(language.id, code, result, user, user, question.id)
     end
 
+    progresses = progresses_dao.find_by("userid = ? and question_id = ?", user, question.id).first
+
+    # メール文章作成
+    template = $yaml['MAIL']['MESSAGE']
+
+    if question.input_type == "1"
+      input = "標準入力"
+      data = question.parameter
+    else question.input_type == "2"
+      input = "#{question.file_name}ファイル"
+      data = question.file_data
+    end
+
+    items = {
+      task: task,
+      question: question.question,
+      input: input,
+      data: data,
+      answer: question.answer,
+      server: $yaml['SERVER']['SITE_ROOT'],
+      check_url: $yaml['MAIL']['CHECK_URL'],
+      pid: progresses.id
+    }
+
+    body = template
+    items.each do |k, v|
+      body = body.gsub("{#{k}}", v.to_s)
+    end
+
     # ソースコードメール提出
     mail = STUDY::SimpleMail.new('smtp.tsone.co.jp', 25)
     from = "#{user}@tsone.co.jp"
-    #to = "#{teachers.userid}@tsone.co.jp"
-    to = "mori-te@tsone.co.jp"
+    to = "#{teachers.userid}@tsone.co.jp"
     p [from, to]
-    body = "課題 #{task} のソースコードを提出します。\n\n"
-    body += "【問題文】\n#{question.question}\n\n"
-    if question.input_type == "0"
-    elsif question.input_type == "1"
-      body += "【入力値】標準入力で以下になります。\n#{question.parameter}\n"
-    else question.input_type == "2"
-      body += "【入力値】#{question.file_name}ファイルで以下になります。\n"
-      body += "#{question.file_data}\n"
-    end
-    body += "\n【正解】\n#{question.answer}"
-    body += "\n\nご確認の程よろしくお願いいたします。\n"
     attach_files = [source_file]
     mail.send(from, to, body, attach_files)
     ""

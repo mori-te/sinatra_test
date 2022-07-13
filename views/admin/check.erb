@@ -38,7 +38,7 @@
           <tr v-for="(item, index) in list">
             <td>{{ item.id }}</td><td>{{ item.task }}</td>
             <td><a v-bind:href="item.href">{{ item.outline }}</a></td>
-            <td>{{ item.name }}</td><td>{{ item.cr_user }}</td><td>9999/99/99</td>
+            <td>{{ item.name }}</td><td>{{ item.cr_user }}</td><td>{{ item.sb_date}}</td>
             <td colspan="2">
                 <button type="button" v-on:click="clickOK" v-bind:value="item.pid" class="btn btn-primary btn-sm study-btn">OK</button> &nbsp;
                 <button type="button" v-on:click="clickNG" v-bind:value="item.pid" class="btn btn-danger btn-sm study-btn">NG</button> &nbsp;
@@ -46,7 +46,7 @@
           </tr>
         </tbody>
       </table>
-      <a href="/menu">BACK</a> &nbsp;
+      <a href="/menu">問題一覧へ戻る</a> &nbsp;
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
   </body>

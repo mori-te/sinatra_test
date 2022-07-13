@@ -4,56 +4,53 @@
 require 'mysql2'
 require 'json'
 
-class BaseDao
-  def initialize(client, table_name = nil)
-    @client = client
-    @table = table_name || self.class.name.downcase
+module STUDY
+  class Recode
+    def initialize(row)
+      @row = row
+    end
+    def to_h
+      @row.to_h
+    end
+    def method_missing(method, *args)
+      super if !@row.keys.include?(method.to_s)
+      @row[method.to_s]
+    end
   end
 
-  def query_base(sql, *param)
-    if param.size == 0
-      res = @client.query(sql)
-    else
-      stmt = @client.prepare(sql)
-      res = stmt.execute(*param)
+  class BaseDao
+    def initialize(client, table_name = nil)
+      @client = client
+      @table = table_name || self.class.name.downcase
     end
-    res
-  end
 
-  def query(sql, *param)
-    res = query_base(sql, *param)
-    fields = []
-    res.fields.each do |field_name|
-      fields << field_name.intern
+    def query_base(sql, *param)
+      if param.size == 0
+        res = @client.query(sql)
+      else
+        stmt = @client.prepare(sql)
+        res = stmt.execute(*param)
+      end
+      res
     end
-    recodes = []
-    question = Struct.new(self.class.name, *fields)
-    res.each do |rec|
-      recode = question.new(*rec.values)
-      recodes << recode
+
+    def query(sql, *param)
+      res = query_base(sql, *param)
+      res.map do |rec|
+        Recode.new(rec)
+      end
     end
-    recodes
-  end
 
-  def query_hash(sql, *param)
-    res = query_base(sql, *param)
-    recodes = []
-    res.each do |rec|
-      recodes << rec
+    def find_by(where = "", *param)
+      where = "where " + where if where != ""
+      query("select * from #{@table.to_s} #{where}", *param)
     end
-    recodes
-  end
-
-
-  def find_by(where = "", *param)
-    where = "where " + where if where != ""
-    query("select * from #{@table.to_s} #{where}", *param)
   end
 end
 
 if __FILE__ == $0
   client = Mysql2::Client.new(
     :host => 'study-mysql', :username => 'root', :password => 'mysql', :encoding => 'utf8', :database => 'study')
-  dao = BaseDao.new(client)
-  puts dao.query_hash("select * from teachers")
+  dao = STUDY::BaseDao.new(client, :questions)
+  p dao.find_by
 end

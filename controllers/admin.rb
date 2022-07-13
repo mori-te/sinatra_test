@@ -21,7 +21,7 @@ class AdminController < BaseController
   # 問題作成＆編集画面表示
   #
   get '/create_and_edit' do
-    redirect '/' unless session[:userid]
+    redirect '/' unless session[:userid] and session[:authority] > 0
 
     @userid = session[:userid]
     @question = {}
@@ -34,7 +34,7 @@ class AdminController < BaseController
   # 提出ソースチェック画面表示
   #
   get '/check' do
-    redirect '/' unless session[:userid]
+    redirect '/' unless session[:userid] and session[:authority] > 0
     @userid = session[:userid]
     erb :check
   end
@@ -43,7 +43,7 @@ class AdminController < BaseController
   # 提出回答確認画面表示
   #
   get '/check_answer' do 
-    redirect '/' unless session[:userid]
+    redirect '/' unless session[:userid] and session[:authority] > 0
 
     # パラメータ・セッション情報取得
     @pid = @params['pid']
@@ -53,7 +53,7 @@ class AdminController < BaseController
   end
 
   get '/check_progress_api' do
-    redirect '/' unless session[:userid]
+    redirect '/' unless session[:userid] and session[:authority] > 0
 
     # パラメータ・セッション情報取得
     pid = @params['pid']
@@ -98,9 +98,10 @@ class AdminController < BaseController
   # 提出データ取得API
   #
   get '/submmited_list_api' do
+    redirect '/' unless session[:userid] and session[:authority] > 0
     userid = @params['user']
     sql = %{
-      SELECT q.id, p.id as pid, q.task, p.userid, q.outline, l.name, q.cr_user
+      SELECT q.id, p.id as pid, q.task, p.userid, q.outline, l.name, q.cr_user, p.sb_date
         FROM progresses p join questions q
           ON p.question_id = q.id join languages l
           ON p.lang_id = l.id
@@ -111,6 +112,7 @@ class AdminController < BaseController
     recodes = []
     res.each do |r|
       r['href'] = "check_answer?pid=#{r['pid']}"
+      r['sb_date'] = r['sb_date'] && r['sb_date'].strftime("%Y/%m/%d")
       recodes << r
     end
     p recodes
@@ -138,7 +140,7 @@ class AdminController < BaseController
   # OK/NGステータス更新API
   #
   post '/set_status_api' do
-    redirect '/' unless session[:userid]
+    redirect '/' unless session[:userid] and session[:authority] > 0
     userid = session[:userid]
     json = JSON.parse(request.body.read)
     no = json["id"]
@@ -158,7 +160,7 @@ class AdminController < BaseController
   # 問題作成＆編集API
   #
   post '/create_and_edit_question_api' do
-    redirect '/' unless session[:userid]
+    redirect '/' unless session[:userid] and session[:authority] > 0
     params = JSON.parse(request.body.read)
     userid = session[:userid]
     level = params["level"]
@@ -202,7 +204,7 @@ class AdminController < BaseController
   # 問題削除処理
   #
   post '/delete_api' do
-    redirect '/' unless session[:userid]
+    redirect '/' unless session[:userid] and session[:authority] > 0
     params = JSON.parse(request.body.read)
     userid = session[:userid]
     no = params["no"]
@@ -218,7 +220,7 @@ class AdminController < BaseController
   # 問題取得API
   #
   get '/get_question_api' do
-    redirect '/' unless session[:userid]
+    redirect '/' unless session[:userid] and session[:authority] > 0
     @userid = session[:userid]
     no = @params['no']
 

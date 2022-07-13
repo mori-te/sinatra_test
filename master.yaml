@@ -1,6 +1,27 @@
 #
 # マスターデータ
 #
+SERVER:
+  'SITE_ROOT': '192.168.11.43:4567'
+
+MAIL:
+  'CHECK_URL': '/admin/check_answer'
+  'MESSAGE': |
+    課題 {task} のソースコードを提出します。
+
+    【問題文】
+    {question}
+
+    【入力値】{input}で以下になります。
+    {data}
+
+    【正解】
+    {answer}
+
+    ご確認の程よろしくお願いいたします。
+
+    http://{server}/?back={check_url}?pid={pid}
+
 LANG:
   'java':
   - 'javascript'

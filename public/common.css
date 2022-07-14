@@ -105,3 +105,9 @@ pre code {
     color: red;
     font-weight: bold;
 }
+
+.study-data-edit {
+    height: 20px;
+    padding: 2px 12px;
+    font-size: 0.3em;
+}

@@ -76,9 +76,16 @@
           </span>
         </div>
         <div class="col-lg">
-          {{ inputName }}
           <div class="row">
-            <textarea id="output" class="form-control font-monospace" rows="3" readonly>{{ inputData }}</textarea>
+            <div class="col-lg-9">
+            {{ inputName }}
+            </div>
+            <div class="col-lg-3">
+              <button v-on:click="resetParameter" class="btn btn-secondary float-end study-data-edit">RESET</button>
+            </div>
+          </div>
+          <div class="row">
+            <textarea id="output" class="form-control font-monospace" rows="3" v-model="inputData" v-bind:readonly="isReadonly">{{ inputData }}</textarea>
           </div>
           実行結果
           <div class="row">

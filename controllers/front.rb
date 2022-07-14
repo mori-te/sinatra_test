@@ -145,19 +145,24 @@ class FrontController < BaseController
     res = @@client.query(sql)
     @question = res.first
     input_type = @question['input_type']
+    readonly = true;
     if input_type == '1'
-      @input_type, @input_data = '標準入力データ', @question['parameter']
+      @input_name, @input_data = '標準入力データ', @question['parameter']
       STUDY::Utils.set_input_file(@userid, '.input.txt', @question['parameter'])
+      readonly = false;
     elsif input_type == '2'
-      @input_type, @input_data = "入力ファイル（#{@question['file_name']}）", @question['file_data']
+      @input_name, @input_data = "入力ファイル（#{@question['file_name']}）", @question['file_data']
       STUDY::Utils.set_input_file(@userid, @question['file_name'], @question['file_data'])
+      readonly = false;
     else
-      @input_type, @input_data = '入力データなし', '-'
+      @input_name, @input_data = '入力データなし', '-'
     end
     {
       question: @question,
-      input_type: @input_type,
-      input_data: @input_data
+      input_type: input_type,
+      input_data: @input_data,
+      input_name: @input_name,
+      input_readonly: readonly
     }.to_json
   end
 

@@ -12,6 +12,7 @@ module STUDY
         io.print(json['source'])
       end
       FileUtils.chown(user, user, [source_file])
+      self.setup_parameter(user, body)
       [source_file, user]
     end
 
@@ -40,6 +41,26 @@ module STUDY
           io.print(data)
       end
       FileUtils.chown(user, user, [input_data_file])
-    end  
+    end
+
+    # パラメータセットアップ
+    def self.setup_parameter(user, body)
+      params = JSON.parse(body)
+      data = params['input_data']
+      input_type = params['input_type']
+      p [input_type, data]
+      if input_type != nil
+        file_name = nil
+        if input_type == "1"
+          file_name = ".input.txt"
+        elsif input_type == "2"
+          file_name = params['input_file']
+        end
+        p [user, file_name]
+        self.set_input_file(user, file_name, data)
+      end
+    end
+  
   end
+
 end

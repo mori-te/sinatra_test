@@ -21,13 +21,15 @@ var vm = new Vue({
         outline: "",
         question: "",
         source: "",
+        inputType: "0",
         inputName: "",
         inputData: "",
         inputFileName: "",
         result: "-",
         answer: "",
         isEnter: false,
-        isProcessing: false
+        isProcessing: false,
+        isReadonly: true
     },
     methods: {
         exec: function () {
@@ -36,6 +38,9 @@ var vm = new Vue({
             axios.post('exec_' + vm.lang, {
                 user: vm.user,
                 lang: vm.lang,
+                input_type: vm.inputType,
+                input_data: vm.inputData,
+                input_file: vm.inputFileName,
                 source: vm.source
             }).then(function (response) {
                 vm.result = response.data.result;
@@ -84,11 +89,21 @@ var vm = new Vue({
                 vm.question = response.data.question.question;
                 vm.source = response.data.question.code || vm.source;
                 vm.lang = response.data.question.shot_name || vm.lang;
-                vm.inputName = response.data.input_type;
+                vm.inputType = response.data.input_type;
+                vm.inputName = response.data.input_name;
                 vm.inputData = response.data.input_data;
-                vm.inputFileName = response.data.question.input_file_name;
+                vm.inputFileName = response.data.question.file_name;
                 vm.result = response.data.question.result;
                 vm.answer = response.data.question.answer;
+                vm.isReadonly = response.data.input_readonly;
+            })
+        },
+        resetParameter: function () {
+            const no = this.$refs['no'].value;
+            axios.get("get_question_api?no=" + no)
+            .then(function(response) {
+                vm.inputData = response.data.input_data;
+                vm.result = '';
             })
         }
     },

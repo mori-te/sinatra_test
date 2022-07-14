@@ -62,7 +62,7 @@ class AdminController < BaseController
     # 問題取得
 
     sql = %{
-      SELECT q.level, q.task, q.outline, q.question, p.code, l.shot_name, q.input_type, q.parameter, q.file_name, q.file_data, p.result, q.answer, p.userid, q.cr_user
+      SELECT q.id, q.level, q.task, q.outline, q.question, p.code, l.shot_name, q.input_type, q.parameter, q.file_name, q.file_data, p.result, q.answer, p.userid, q.cr_user
         FROM (progresses p join questions q ON p.question_id = q.id) join languages l
           ON p.lang_id = l.id
        WHERE p.id = #{pid}
@@ -70,22 +70,27 @@ class AdminController < BaseController
     res = @@client.query(sql)
     @question = res.first
     input_type = @question['input_type']
+    readonly = true;
     if input_type == '1'
-      @input_type = '標準入力データ'
+      @input_name = '標準入力データ'
       @input_data = @question['parameter']
       STUDY::Utils.set_input_file(@userid, '.input.txt', @question['parameter'])
+      readonly = false;
     elsif input_type == '2'
-      @input_type = "入力ファイル（#{@question['file_name']}）"
+      @input_name = "入力ファイル（#{@question['file_name']}）"
       @input_data = @question['file_data']
       STUDY::Utils.set_input_file(@userid, @question['file_name'], @question['file_data'])
+      readonly = false;
     else
-      @input_type = '入力データなし'
+      @input_name = '入力データなし'
       @input_data = '-'
     end
     {
       question: @question,
-      input_type: @input_type,
-      input_data: @input_data
+      input_type: input_type,
+      input_name: @input_name,
+      input_data: @input_data,
+      input_readonly: readonly
     }.to_json
   end
 

@@ -22,6 +22,7 @@ var vm = new Vue({
         level: "D",
         uploadfile: "",
         isEnter: false,
+        inputType: "0",
         inputName: "",
         inputFileName: "",
         inputData: "",
@@ -31,25 +32,29 @@ var vm = new Vue({
         createUser: "",
         userid: "",
         no: 0,
-        isProcessing: false
+        isProcessing: false,
+        isReadonly: true
     },
     methods: {
         check_answer: function (pid) {
             axios.get("check_progress_api?pid=" + pid)
             .then(function(response) {
+                vm.no = response.data.question.id;
                 vm.task = response.data.question.task;
                 vm.level = response.data.question.level;
                 vm.outline = response.data.question.outline;
                 vm.question = response.data.question.question;
                 vm.source = response.data.question.code;
                 vm.lang = response.data.question.shot_name;
-                vm.inputName = response.data.input_type;
+                vm.inputType = response.data.input_type;
+                vm.inputName = response.data.input_name;
                 vm.inputData = response.data.input_data;
-                vm.inputFileName = response.data.question.input_file_name;
+                vm.inputFileName = response.data.question.file_name;
                 vm.result = response.data.question.result;
                 vm.answer = response.data.question.answer;
                 vm.userid = response.data.question.userid;
                 vm.createUser = response.data.question.cr_user;
+                vm.isReadonly = response.data.input_readonly;
             })
         },
         exec: function () {
@@ -58,8 +63,10 @@ var vm = new Vue({
             axios.post('/exec_' + vm.lang, {
                 user: vm.user,
                 lang: vm.lang,
-                source: vm.source,
-                mode: 1
+                input_type: vm.inputType,
+                input_data: vm.inputData,
+                input_file: vm.inputFileName,
+                source: vm.source
             }).then(function (response) {
                 vm.result = response.data.result;
                 spinner.stop();
@@ -92,6 +99,18 @@ var vm = new Vue({
             .then(function(response) {
                 alert("NGに設定しました。");
             })
+        },
+        resetParameter: function () {
+            axios.get("get_question_api?no=" + vm.no)
+            .then(function(response) {
+                vm.inputData = response.data.input_data;
+                vm.result = '';
+            })
+        }
+    },
+    computed: {
+        compiledMarkdown() {
+            return marked(this.question, { sanitize: true });
         }
     },
     mounted() {

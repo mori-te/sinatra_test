@@ -52,13 +52,14 @@ module STUDY
       params = JSON.parse(body)
       data = params['input_data']
       input_type = params['input_type']
-      if input_type != nil
+      if input_type != nil and input_type != "0"
         file_name = nil
         if input_type == "1"
           file_name = ".input.txt"
         elsif input_type == "2"
           file_name = params['input_file']
         end
+        p [user, file_name, data]
         self.set_input_file(user, file_name, data)
       end
     end

@@ -52,7 +52,6 @@ module STUDY
       params = JSON.parse(body)
       data = params['input_data']
       input_type = params['input_type']
-      p [input_type, data]
       if input_type != nil
         file_name = nil
         if input_type == "1"
@@ -60,7 +59,6 @@ module STUDY
         elsif input_type == "2"
           file_name = params['input_file']
         end
-        p [user, file_name]
         self.set_input_file(user, file_name, data)
       end
     end

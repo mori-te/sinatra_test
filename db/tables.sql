@@ -39,7 +39,8 @@ CREATE TABLE progresses (
     cr_date     DATETIME,
     up_user     VARCHAR(64),
     up_date     DATETIME,
-    del_flag    CHAR(1)
+    del_flag    CHAR(1),
+    UNIQUE (userid, question_id)
 );
 
 -- 先生マスタ
@@ -53,7 +54,7 @@ CREATE TABLE teachers (
 
 -- 言語マスタ
 CREATE TABLE languages (
-    id          TINYINT unsigned NOT NULL,
+    id          TINYINT unsigned NOT NULL PRIMARY KEY,
     shot_name   VARCHAR(32),         -- 言語略称
     name        VARCHAR(64),         -- 言語名
     del_flag    CHAR(1)

@@ -12,11 +12,11 @@ INSERT INTO questions (
 INSERT INTO teachers (
     id, lang_id, userid, del_flag
 ) values (
-    1, 1, 'yoshida-sa', '0'
+    1, 1, 'mori-te', '0'
 ), (
     2, 2, 'mori-te', '0'
 ), (
-    3, 3, 'yoshida-sa', '0'
+    3, 3, 'mori-te', '0'
 ), (
     4, 4, 'nakamura-ma', '0'
 ), (
@@ -26,7 +26,7 @@ INSERT INTO teachers (
 ), (
     7, 7, 'nose-ju', '0'
 ), (
-    8, 8, 'satou-ko', '0'
+    8, 8, 'mori-te', '0'
 );
 
 INSERT INTO languages (

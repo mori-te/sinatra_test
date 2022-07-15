@@ -129,7 +129,14 @@ var vm = new Vue({
             return (this.inputType == 0);
         },
         compiledMarkdown() {
-            return marked(this.question, { sanitize: true });
+            var markdown = marked(this.question, { sanitize: true });
+            var matches;
+            const re = /\$\$([^\$\n]*)\$\$/g;
+            while ((matches = re.exec(markdown)) != null) {
+              console.log(matches);
+              markdown = markdown.replace(matches[0], katex.renderToString(matches[1]));
+            }
+            return markdown;
         },
         isShowText() {
             return this.currentTab == this.tabs[0];

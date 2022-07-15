@@ -22,9 +22,13 @@ module STUDY
       begin
         IO.popen(['su', '-', user, '-c', "#{cmd}", :err => [:child, :out]], 'r+') do |io|
           # 標準入力データ
-          File.open("/home/#{user}/.input.txt", "r").each do |buf|
-            io.print(buf)
-          end
+          begin
+            input_file_name = "/home/#{user}/.input.txt"
+            File.open(input_file_name, "r").each do |buf|
+              io.print(buf)
+            end
+            FileUtils.rm(input_file_name)
+          rescue; end
           io.close_write
           result = io.read
         end

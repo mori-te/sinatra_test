@@ -175,23 +175,27 @@ class FrontController < BaseController
 
   # java実行・結果出力
   post '/exec_java' do
-    json = JSON.parse(request.body.read)
-    user = json['user']
-    source_code = json['source']
-    class_name = source_code.scan(/class (\w+)/)[0]
-    source_file = "/home/#{user}/#{user}.java"
-    class_file = "/home/#{user}/#{class_name[0]}.class"
-    exec_name = File.basename(class_file, '.*')
-    File.open(source_file, 'w') do |io|
-      io.print(json['source'])
-    end
-    FileUtils.chown(user, user, [source_file])
+    result = nil
     begin
-      FileUtils.rm(class_file)
-    rescue
-    end
+      json = JSON.parse(request.body.read)
+      user = json['user']
+      source_code = json['source']
+      class_name = source_code.scan(/class (\w+)/)[0]
+      source_file = "/home/#{user}/#{user}.java"
+      class_file = "/home/#{user}/#{class_name[0]}.class"
+      exec_name = File.basename(class_file, '.*')
+      File.open(source_file, 'w') do |io|
+        io.print(json['source'])
+      end
+      FileUtils.chown(user, user, [source_file])
+      begin
+        FileUtils.rm(class_file)
+      rescue; end
 
-    result = STUDY::Utils.exec_source_file(user, "javac #{source_file} && java #{exec_name}")
+      result = STUDY::Utils.exec_source_file(user, "javac #{source_file} && java #{exec_name}")
+    rescue
+      result = "予期せぬエラーが発生しました。クラスが定義されているか確認してください。"
+    end
     { result: result }.to_json
   end
 

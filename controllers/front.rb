@@ -68,6 +68,9 @@ class FrontController < BaseController
   post '/auth' do
     userid, passwd = @params[:user], @params[:passwd]
     begin
+      @@client = Mysql2::Client.new(
+        :host => 'study-mysql', :username => 'root', :password => 'mysql', :encoding => 'utf8', :database => 'study')
+  
       users_dao = Users.new(@@client)
       user = users_dao.find_by("userid = ?", userid).first
       if user != nil

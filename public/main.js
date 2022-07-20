@@ -82,21 +82,29 @@ var vm = new Vue({
         getQuestion: function () {
             const no = this.$refs['no'].value;
             axios.get("get_question_api?no=" + no)
-            .then(function(response) {
-                vm.task = response.data.question.task;
-                vm.level = response.data.question.level;
-                vm.outline = response.data.question.outline;
-                vm.question = response.data.question.question;
-                vm.source = response.data.question.code || vm.source;
-                vm.lang = response.data.question.shot_name || vm.lang;
-                vm.inputType = response.data.input_type;
-                vm.inputName = response.data.input_name;
-                vm.inputData = response.data.input_data;
-                vm.inputFileName = response.data.question.file_name;
-                vm.result = response.data.question.result;
-                vm.answer = response.data.question.answer;
-                vm.isReadonly = response.data.input_readonly;
-            })
+                .then(function (response) {
+                    vm.task = response.data.question.task;
+                    vm.level = response.data.question.level;
+                    vm.outline = response.data.question.outline;
+                    vm.question = response.data.question.question;
+                    vm.source = response.data.question.code || vm.source;
+                    vm.lang = response.data.question.shot_name || vm.lang;
+                    vm.inputType = response.data.input_type;
+                    vm.inputName = response.data.input_name;
+                    vm.inputData = response.data.input_data;
+                    vm.inputFileName = response.data.question.file_name;
+                    vm.result = response.data.question.result;
+                    vm.answer = response.data.question.answer;
+                    vm.isReadonly = response.data.input_readonly;
+
+                    if (vm.source == "") {
+                        vm.lang = 'java';
+                        vm.change();
+                    }
+                }).catch(function (response) {
+                    return false;
+                });
+            return true;
         },
         resetParameter: function () {
             const no = this.$refs['no'].value;
@@ -109,22 +117,26 @@ var vm = new Vue({
     },
     computed: {
         compiledMarkdown() {
-            var markdown = marked(this.question, { sanitize: true });
+            const placeholder = "[katex][/katex]";
+            const re = /\$\$ *([^\$\n]*) *\$\$/g;
+            var expressions = [];
             var matches;
-            const re = /\$\$([^\$\n]*)\$\$/g;
-            while ((matches = re.exec(markdown)) != null) {
-              console.log(matches);
-              markdown = markdown.replace(matches[0], katex.renderToString(matches[1]));
+            var text = this.question;
+            while ((matches = re.exec(text)) != null) {
+                expressions.push(matches);
+            }
+            for (const expression of expressions) {
+                text = text.replace(expression[0], placeholder);
+            }
+            var markdown = marked(text, { sanitize: true });
+            for (const expression of expressions) {
+                markdown = markdown.replace(placeholder, katex.renderToString(expression[1]));
             }
             return markdown;
         }
     },
     mounted() {
         this.getQuestion();
-        if (this.source == "") {
-            this.lang = 'java';
-            this.change();
-        }
         this.getUserId();
     }
 })

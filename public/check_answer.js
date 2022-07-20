@@ -110,12 +110,20 @@ var vm = new Vue({
     },
     computed: {
         compiledMarkdown() {
-            var markdown = marked(this.question, { sanitize: true });
+            const placeholder = "[katex][/katex]";
+            const re = /\$\$ *([^\$\n]*) *\$\$/g;
+            var expressions = [];
             var matches;
-            const re = /\$\$([^\$\n]*)\$\$/g;
-            while ((matches = re.exec(markdown)) != null) {
-              console.log(matches);
-              markdown = markdown.replace(matches[0], katex.renderToString(matches[1]));
+            var text = this.question;
+            while ((matches = re.exec(text)) != null) {
+                expressions.push(matches);
+            }
+            for (const expression of expressions) {
+                text = text.replace(expression[0], placeholder);
+            }
+            var markdown = marked(text, { sanitize: true });
+            for (const expression of expressions) {
+                markdown = markdown.replace(placeholder, katex.renderToString(expression[1]));
             }
             return markdown;
         }

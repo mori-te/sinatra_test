@@ -2,6 +2,7 @@ import {Spinner} from 'https://cdnjs.cloudflare.com/ajax/libs/spin.js/4.1.1/spin
 
 const spinner = new Spinner({color: '#999999'});
 const VueCodemirror = window.VueCodemirror;
+
 Vue.use(VueCodemirror);
 var vm = new Vue({
     el: "#app",
@@ -129,12 +130,20 @@ var vm = new Vue({
             return (this.inputType == 0);
         },
         compiledMarkdown() {
-            var markdown = marked(this.question, { sanitize: true });
+            const placeholder = "[katex][/katex]";
+            const re = /\$\$ *([^\$\n]*) *\$\$/g;
+            var expressions = [];
             var matches;
-            const re = /\$\$([^\$\n]*)\$\$/g;
-            while ((matches = re.exec(markdown)) != null) {
-              console.log(matches);
-              markdown = markdown.replace(matches[0], katex.renderToString(matches[1]));
+            var text = this.question;
+            while ((matches = re.exec(text)) != null) {
+                expressions.push(matches);
+            }
+            for (const expression of expressions) {
+                text = text.replace(expression[0], placeholder);
+            }
+            var markdown = marked(text, { sanitize: true });
+            for (const expression of expressions) {
+                markdown = markdown.replace(placeholder, katex.renderToString(expression[1]));
             }
             return markdown;
         },

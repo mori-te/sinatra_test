@@ -1,4 +1,5 @@
 import {Spinner} from 'https://cdnjs.cloudflare.com/ajax/libs/spin.js/4.1.1/spin.js';
+import {compiledMarkdownAndKatex} from './utils.js';
 
 const spinner = new Spinner({color: '#999999'});
 const VueCodemirror = window.VueCodemirror;
@@ -130,22 +131,9 @@ var vm = new Vue({
             return (this.inputType == 0);
         },
         compiledMarkdown() {
-            const placeholder = "[katex][/katex]";
-            const re = /\$\$ *([^\$\n]*) *\$\$/g;
-            var expressions = [];
-            var matches;
-            var text = this.question;
-            while ((matches = re.exec(text)) != null) {
-                expressions.push(matches);
-            }
-            for (const expression of expressions) {
-                text = text.replace(expression[0], placeholder);
-            }
-            var markdown = marked(text, { sanitize: true });
-            for (const expression of expressions) {
-                markdown = markdown.replace(placeholder, katex.renderToString(expression[1]));
-            }
-            return markdown;
+            return compiledMarkdownAndKatex({
+                question: this.question
+            });
         },
         isShowText() {
             return this.currentTab == this.tabs[0];

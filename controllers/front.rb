@@ -68,8 +68,9 @@ class FrontController < BaseController
   post '/auth' do
     userid, passwd = @params[:user], @params[:passwd]
     begin
+      db = $yaml['DATABASE']
       @@client = Mysql2::Client.new(
-        :host => 'study-mysql', :username => 'root', :password => 'mysql', :encoding => 'utf8', :database => 'study')
+        :host => db['HOST'], :username => db['USERNAME'], :password => db['PASSWORD'], :encoding => 'utf8', :database => db['DBNAME'])
   
       users_dao = Users.new(@@client)
       user = users_dao.find_by("userid = ?", userid).first
@@ -96,6 +97,11 @@ class FrontController < BaseController
     else
       session[:authority] = user.authority
       session[:userid] = userid
+
+      dao = Languages.new(@@client)
+      res = dao.find_by
+      @@langs = res.map {|r| [r.shot_name, r] }.to_h
+    
       redirect @params[:back] || '/menu'
     end
   end
@@ -246,8 +252,8 @@ class FrontController < BaseController
 
   # 言語情報取得
   get '/lang' do
-    lang, extension, indent, source = $yaml['LANG'][params['lang']]
-    { lang: lang, indent: indent, source: source }.to_json
+    lang = @@langs[params['lang']]
+    { lang: lang.mode, indent: lang.indent, source: lang.source }.to_json
   end
 
   # ユーザ情報取得
@@ -267,8 +273,8 @@ class FrontController < BaseController
     code = json['source']
     result = json['result']
 
-    type, extension, indent, source = $yaml['LANG'][lang]
-    source_file = "/home/#{user}/#{user}.#{extension}"
+    lang_info = @@langs[lang]
+    source_file = "/home/#{user}/#{user}.#{lang_info.suffix}"
 
     languages_dao = Languages.new(@@client)
     language = languages_dao.find_by("shot_name = ?", lang).first

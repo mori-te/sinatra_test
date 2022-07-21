@@ -70,7 +70,7 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-lg">
+        <div class="col-lg-7">
           ソースコード
           <span @keydown.enter.shift.prevent="exec">
             <codemirror ref="cm" v-model="source" :options="cmOptions"></codemirror>
@@ -100,7 +100,7 @@
       </div>
       <br>
       <div class="row">
-        <div class="col-lg">
+        <div class="col-lg-7">
           <select v-model="lang" v-on:change="change" class="form-select">
             <option value="java">Java</option>
             <option value="ruby">Ruby</option>

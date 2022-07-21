@@ -17,6 +17,7 @@ class BaseController < Sinatra::Base
   set :root, File.join(File.dirname(__FILE__), '..')
   set :views, (proc { File.join(root, 'views') })
   enable :sessions
+  use Rack::Session::Cookie, :expire_after => 3600
 
   configure do
     @@client = nil

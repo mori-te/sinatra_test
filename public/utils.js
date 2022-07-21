@@ -1,5 +1,3 @@
-//import katex from "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.js";
-//import marked from "https://unpkg.com/marked@0.3.6/lib/marked.js";
 import katex from 'https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.mjs';
 import {marked} from "https://unpkg.com/marked@4.0.18/src/marked.js";
 
@@ -19,7 +17,13 @@ function compiledMarkdownAndKatex({question}) {
     }
     var markdown = marked(text, { sanitize: true });
     for (const expression of expressions) {
-        markdown = markdown.replace(placeholder, katex.renderToString(expression[1]));
+        var exprText = null;
+        try {
+            exprText = katex.renderToString(expression[1])
+        } catch (e) {
+            exprText = e.message;
+        }
+        markdown = markdown.replace(placeholder, exprText);
     }
     return markdown;
 };

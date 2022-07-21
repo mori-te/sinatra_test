@@ -57,6 +57,10 @@ CREATE TABLE languages (
     id          TINYINT unsigned NOT NULL PRIMARY KEY,
     shot_name   VARCHAR(32),         -- 言語略称
     name        VARCHAR(64),         -- 言語名
+    mode        VARCHAR(32),         -- エディタモード
+    suffix      VARCHAR(12),         -- 接尾語（拡張子）
+    indent      TINYINT unsigned,    -- インデント
+    source      TEXT,                -- サンプルコード
     del_flag    CHAR(1)
 );
 

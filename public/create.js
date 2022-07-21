@@ -24,7 +24,7 @@ var vm = new Vue({
         level: "D",
         uploadfile: "",
         isEnter: false,
-        inputType: 0,
+        inputType: "0",
         inputFileName: "",
         inputData: "",
         outline: "",
@@ -42,8 +42,10 @@ var vm = new Vue({
             axios.post('/exec_' + vm.lang, {
                 user: vm.user,
                 lang: vm.lang,
-                source: vm.source,
-                mode: 1
+                input_type: vm.inputType,
+                input_data: vm.inputData,
+                input_file: vm.inputFileName,
+                source: vm.source
             }).then(function (response) {
                 vm.result = response.data.result;
                 spinner.stop();

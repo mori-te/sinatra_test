@@ -72,11 +72,12 @@ class FrontController < BaseController
       @@client = Mysql2::Client.new(
         :host => db['HOST'], :username => db['USERNAME'], :password => db['PASSWORD'], :encoding => 'utf8', :database => db['DBNAME'])
   
+      ml = $yaml['MAIL']
       users_dao = Users.new(@@client)
       user = users_dao.find_by("userid = ?", userid).first
       if user != nil
         if user.auth_type == 1
-          imap = Net::IMAP.new('mail.tsone.co.jp')
+          imap = Net::IMAP.new(ml['HOST'])
           imap.authenticate('PLAIN', userid, passwd)
         elsif user.auth_type == 0
           if user.passwd != Digest::SHA512.hexdigest(passwd)
@@ -342,20 +343,24 @@ class FrontController < BaseController
     progresses_dao = Progresses.new(@@client)
     progresses = progresses_dao.find_by("userid = ? and question_id = ?", user, question.id)
 
+    data = {
+      userid: user,
+      lang_id: language.id,
+      code: code,
+      sb_date: Time.now,
+      result: result,
+      submitted: 1,
+      del_flag: '0'
+    }
     if progresses.size == 0
-      sql = %{
-        INSERT INTO progresses (userid, question_id, lang_id, code, sb_date, result, status, submitted, cr_user, cr_date, del_flag)
-        VALUES (?, ?, ?, ?, NOW(), ?, null, 1, ?, NOW(), '0')
-      }
-      stmt = @@client.prepare(sql)
-      res = stmt.execute(user, question.id, language.id, code, result, user)
+      # 登録
+      data['question_id'] = question.id
+      data['cr_user'] = user
+      progresses_dao.insert(data)
     else
-      sql = %{
-        UPDATE progresses SET lang_id = ?, code = ?, sb_date = NOW(), result = ?, status = null, submitted = 1, up_user = ?, up_date = NOW(), del_flag = '0'
-        WHERE userid = ? AND question_id = ?
-      }
-      stmt = @@client.prepare(sql)
-      res = stmt.execute(language.id, code, result, user, user, question.id)
+      # 更新
+      data['up_user'] = user
+      progresses_dao.update(data, "userid = ? AND question_id = ?", user, question.id)
     end
 
     progresses = progresses_dao.find_by("userid = ? and question_id = ?", user, question.id).first

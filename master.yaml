@@ -5,6 +5,7 @@ SERVER:
   'SITE_ROOT': '192.168.11.43:4567'
 
 MAIL:
+  'HOST': 'mail.tsone.co.jp'
   'CHECK_URL': '/admin/check_answer'
   'MESSAGE': |
     課題 {task} のソースコードを提出します。

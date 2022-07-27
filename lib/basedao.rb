@@ -78,8 +78,7 @@ module STUDY
       binds = Array.new(data.keys.size, '?').join(',')
       values = data.values
       sql = "INSERT INTO #{@table} (#{columns}) VALUES (#{binds})"
-      stmt = @client.prepare(sql)
-      stmt.execute(*values)
+      query_base(sql, *values)
     end
 
     # 更新
@@ -89,15 +88,13 @@ module STUDY
       binds = data.keys.map {|k| "#{k} = ?"}.join(",")
       values = data.values.push(*param)
       sql = "UPDATE #{@table} SET #{binds} WHERE #{where}"
-      stmt = @client.prepare(sql)
-      stmt.execute(*values)
+      query_base(sql, *values)
     end
 
     # 削除
     def delete(where, *param)
       sql = "DELETE FROM #{@table} WHERE #{where}"
-      stmt = @client.prepare(sql)
-      stmt.execute(*param)
+      query_base(sql, *param)
     end
   end
 end

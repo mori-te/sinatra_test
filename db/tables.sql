@@ -1,3 +1,4 @@
+-- Active: 1657605934301@@192.168.11.43@3306@study
 --
 -- テーブル作成用SQLスクリプト
 --
@@ -72,3 +73,17 @@ CREATE TABLE users (
     authority   TINYINT unsigned NOT NULL,         -- 権限(0:生徒, 1:先生, 9:管理者)
     del_flag    CHAR(1)
 );
+
+-- 解答コードデータ
+CREATE TABLE answer_codes (
+    id          INT unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    question_id INT unsigned NOT NULL,             -- 問題ID
+    lang_id     TINYINT unsigned NOT NULL,         -- 言語ID
+    userid      VARCHAR(64) NOT NULL,              -- ユーザID
+    code        TEXT,
+    cr_user     VARCHAR(64),
+    cr_date     DATETIME,
+    up_user     VARCHAR(64),
+    up_date     DATETIME,
+    del_flag    CHAR(1)
+)

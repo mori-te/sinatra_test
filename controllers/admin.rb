@@ -52,6 +52,13 @@ class AdminController < BaseController
     erb :check_answer
   end
 
+  # -------
+  # WEBAPI
+  # -------
+
+  #
+  # 提出問題取得API
+  #
   get '/check_progress_api' do
     redirect '/' unless session[:userid] and session[:authority] > 0
 
@@ -94,13 +101,8 @@ class AdminController < BaseController
     }.to_json
   end
 
-
-  # -------
-  # WEBAPI
-  # -------
-
   #
-  # 提出データ取得API
+  # 提出リスト取得API
   #
   get '/submmited_list_api' do
     redirect '/' unless session[:userid] and session[:authority] > 0
@@ -245,6 +247,39 @@ class AdminController < BaseController
       answer: qa.answer
     }.to_json
   end
+
+  #
+  # 解答保存API
+  #
+  post '/save_api' do
+    redirect '/' unless session[:userid] and session[:authority] > 0
+    @userid = session[:userid]
+    params = JSON.parse(request.body.read)
+    no = params['question_id']
+    code = params['code']
+    lang_dao = Languages.new(@@client)
+    lang = lang_dao.find_by("shot_name = ?", params['lang']).first
+    
+    answer_code_dao = AnswerCodes.new(@@client)
+    res = answer_code_dao.find_by("question_id = ? and lang_id = ?", no, lang.id).first
+    data = {
+      question_id: no,
+      lang_id: lang.id,
+      userid: @userid,
+      code: code,
+      del_flag: '0'
+    }
+    if res == nil
+      data['cr_user'] = @userid
+      answer_code_dao.insert(data)
+    else
+      data['up_user'] = @userid
+      answer_code_dao.update(data, "id = ?", res.id)
+    end
+
+    {}.to_json
+  end
+
 
   # -------
   # 共通処理

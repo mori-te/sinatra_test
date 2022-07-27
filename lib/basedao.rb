@@ -29,28 +29,39 @@ module STUDY
   # 基本DAOクラス
   #
   class BaseDao
+    @@mu = Mutex.new
+    
     def initialize(client, table_name = nil)
       @client = client
-      @table = table_name || self.class.name.downcase
+      @table = table_name || pascal_to_snake(self.class.name)
+    end
+
+    # パスカル－スネーク簡易変換
+    def pascal_to_snake(str)
+      str.scan(/([A-Z][a-z]*)/).map {|x| x[0].downcase}.join("_")
     end
 
     # 検索
     def query_base(sql, *param)
+      res = nil
+
+      p [sql, param]
       if param.size == 0
-        res = @client.query(sql)
+       res = @client.query(sql)
       else
-        stmt = @client.prepare(sql)
-        res = stmt.execute(*param)
+        res = @client.prepare(sql).execute(*param)
       end
       res
     end
 
     # 検索
     def query(sql, *param)
-      res = query_base(sql, *param)
-      res.map do |rec|
-        Recode.new(rec)
-      end
+      @@mu.synchronize {
+        res = query_base(sql, *param)
+        res.map do |rec|
+          Recode.new(rec)
+        end
+      }
     end
 
     # 検索

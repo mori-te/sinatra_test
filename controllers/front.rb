@@ -253,7 +253,20 @@ class FrontController < BaseController
   # 言語情報取得
   get '/lang' do
     lang = @@langs[params['lang']]
-    { lang: lang.mode, indent: lang.indent, source: lang.source }.to_json
+    lang_id = lang.id
+    userid = session[:userid]
+    no = params['no'] || "0"
+    source = lang.source
+    p [no, lang_id, userid]
+    if no.to_i > 0
+      answer_code_dao = AnswerCodes.new(@@client)
+      answer = answer_code_dao.find_by("question_id = ? and lang_id = ? and userid = ?", no, lang_id, userid).first
+      if answer
+        source = answer.code
+      end
+    end
+    p [lang, userid, no, source]
+    { lang: lang.mode, indent: lang.indent, source: source }.to_json
   end
 
   # ユーザ情報取得

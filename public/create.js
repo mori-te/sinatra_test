@@ -84,7 +84,8 @@ var vm = new Vue({
                 vm.inputFileName = response.data.input_file_name;
                 vm.outline = response.data.outline;
                 vm.question = response.data.question;
-                vm.answer = response.data.answer
+                vm.answer = response.data.answer;
+                vm.getUserId();
             })
         },
         deleteQuestion: function() {
@@ -97,8 +98,27 @@ var vm = new Vue({
                 })
             }
         },
+        saveQuestion: function() {
+            if (confirm('保存しますか？')) {
+                const no = this.$refs['no'].value;
+                axios.post('save_api', {
+                    question_id: no,
+                    lang: vm.lang,
+                    user_id: vm.user_id,
+                    code: vm.source
+                }).then(function(response) {
+                    alert('保存しました。');
+                })
+            }
+        },
         change: function () {
-            axios.get("/lang?lang=" + this.lang)
+            const no = this.$refs['no'].value;
+            axios.get("/lang", {
+                params: {
+                    no: no,
+                    lang: this.lang
+                }
+            })
             .then(function(response) {
                 vm.cmOptions.mode = response.data.lang;
                 vm.cmOptions.tabSize = response.data.indent;
@@ -144,12 +164,11 @@ var vm = new Vue({
             return this.currentTab == this.tabs[1];
         }
     },
-    mounted() {
+    async mounted() {
         const no = this.$refs['no'].value;
         if (no > 0) {
-            this.edit(no);
+            await this.edit(no);
         }
-        this.change();
-        this.getUserId();
+        await this.change();
     }
 })

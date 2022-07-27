@@ -19,6 +19,8 @@ class Teachers < STUDY::BaseDao; end
 # ユーザDAO
 class Users < STUDY::BaseDao; end
 
+# 解答ソースDAO
+class AnswerCodes < STUDY::BaseDao; end
 
 
 if __FILE__ == $0

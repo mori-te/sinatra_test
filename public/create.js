@@ -164,11 +164,11 @@ var vm = new Vue({
             return this.currentTab == this.tabs[1];
         }
     },
-    async mounted() {
+    mounted() {
         const no = this.$refs['no'].value;
         if (no > 0) {
-            await this.edit(no);
+            this.edit(no);
         }
-        await this.change();
+        this.change();
     }
 })

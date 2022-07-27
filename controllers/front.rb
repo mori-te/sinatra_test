@@ -143,7 +143,7 @@ class FrontController < BaseController
 
     sql = %{
       SELECT
-        q.level, q.task, q.outline, q.question, p.code, l.shot_name, q.input_type, q.parameter, q.file_name, q.file_data, p.result, q.answer, p.userid, q.cr_user
+        q.id, q.level, q.task, q.outline, q.question, p.code, p.lang_id, l.shot_name, q.input_type, q.parameter, q.file_name, q.file_data, p.result, q.answer, p.userid, q.cr_user
       FROM
         questions q
         LEFT OUTER JOIN progresses p ON p.question_id = q.id and p.userid = '#{@userid}'
@@ -166,6 +166,16 @@ class FrontController < BaseController
     else
       @input_name, @input_data = '入力データなし', '-'
     end
+
+    if @question['lang_id'] != nil
+      answer_code_dao = AnswerCodes.new(@@client)
+      answer = answer_code_dao.find_by("question_id = ? and lang_id = ? and userid = ?", @question['id'], @question['lang_id'], @userid).first
+      if answer
+        @question['source'] = answer.code
+      end
+      p @question
+    end
+
     {
       question: @question,
       input_type: input_type,
@@ -274,6 +284,38 @@ class FrontController < BaseController
     redirect '/' unless session[:userid]
     userid = session[:userid]
     { userid: userid }.to_json
+  end
+
+#
+  # 解答保存API
+  #
+  post '/save_api' do
+    redirect '/' unless session[:userid]
+    @userid = session[:userid]
+    params = JSON.parse(request.body.read)
+    no = params['question_id']
+    code = params['code']
+    lang_dao = Languages.new(@@client)
+    lang = lang_dao.find_by("shot_name = ?", params['lang']).first
+    
+    answer_code_dao = AnswerCodes.new(@@client)
+    res = answer_code_dao.find_by("question_id = ? and lang_id = ?", no, lang.id).first
+    data = {
+      question_id: no,
+      lang_id: lang.id,
+      userid: @userid,
+      code: code,
+      del_flag: '0'
+    }
+    if res == nil
+      data['cr_user'] = @userid
+      answer_code_dao.insert(data)
+    else
+      data['up_user'] = @userid
+      answer_code_dao.update(data, "id = ?", res.id)
+    end
+
+    {}.to_json
   end
 
   # ソースコード提出

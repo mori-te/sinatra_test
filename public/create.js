@@ -101,10 +101,9 @@ var vm = new Vue({
         saveQuestion: function() {
             if (confirm('保存しますか？')) {
                 const no = this.$refs['no'].value;
-                axios.post('save_api', {
+                axios.post('/save_api', {
                     question_id: no,
                     lang: vm.lang,
-                    user_id: vm.user_id,
                     code: vm.source
                 }).then(function(response) {
                     alert('保存しました。');

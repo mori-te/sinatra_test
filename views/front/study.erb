@@ -116,6 +116,7 @@
           <button v-on:click="back" id="back" type="button" class="btn btn-secondary">戻 る</button>
           <button v-on:click="exec" id="run" type="button" class="btn btn-primary float-end" v-bind:disabled="isProcessing">実 行</button>
           <button v-on:click="submitted" id="submitted" type="button" class="btn btn-primary float-end me-md-2" v-bind:disabled="isProcessing">提 出</button>
+          <button v-on:click="saveQuestion" id="save" type="button" class="btn btn-secondary float-end me-md-2" v-bind:disabled="isProcessing">保 存</button>
         </div>
       </div>
       <div ref="spin"></div>

@@ -18,9 +18,15 @@ module STUDY
       @row.to_h
     end
 
-    # カラム値の取得
+    # カラム値の取得・設定
     def method_missing(method, *args)
-      super if !@row.keys.include?(method.to_s)
+      if @row.keys.include?(method.to_s)
+        
+      elsif @row.keys.map {|x| "#{x}="}.include?(method.to_s)
+        @row[method.to_s.sub(/=$/, "")] = args[0]
+      else
+        super
+      end
       @row[method.to_s]
     end
   end
@@ -110,4 +116,11 @@ if __FILE__ == $0
   #dao.update(data, "id = ?", 100)
   #dao.delete("id = ?", 100)
   pp dao.find_by
+
+  dao = STUDY::BaseDao.new(client)
+  res = dao.query("SELECT * FROM teachers WHERE id = ?", 5).first
+  p res
+  res.id = 0
+  a = res.to_h
+  p a
 end

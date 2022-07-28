@@ -24,16 +24,16 @@
     <div class="container pt-2">
       <ul class="nav nav-tabs">
         <li class="nav-item">
-          <a class="nav-link <%= @level_d %>" aria-current="page" href="?level=D">難易度D</a>
+          <a class="nav-link <%= @level['D'] %>" aria-current="page" href="?level=D">難易度D</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= @level_c %>" href="?level=C">難易度C</a>
+          <a class="nav-link <%= @level['C'] %>" href="?level=C">難易度C</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= @level_b %>" href="?level=B">難易度B</a>
+          <a class="nav-link <%= @level['B'] %>" href="?level=B">難易度B</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= @level_a %>" href="?level=A">難易度A</a>
+          <a class="nav-link <%= @level['A'] %>" href="?level=A">難易度A</a>
         </li>
       </ul>      
       <table class="table">
@@ -45,20 +45,20 @@
         <tbody>
           <% @questions.each do |q| %>
           <tr>
-            <td><%= q['task'] %></td><td><%= q['level'] %></td>
-            <td><a href="/study?no=<%= q['id'] %>"><%= q['outline'] %></a></td>
-            <td><%= q['up_date'].strftime('%Y/%m/%d') %></td>
+            <td><%= q.task %></td><td><%= q.level %></td>
+            <td><a href="/study?no=<%= q.id %>"><%= q.outline %></a></td>
+            <td><%= q.up_date.strftime('%Y/%m/%d') %></td>
             <td>
               <div class="text-right">
-                <% if q['status'] == 0 %>
+                <% if q.status == 0 %>
                 <span class="badge bg-primary study-status">OK</span>
-                <% elsif q['status'] == 1 %>
+                <% elsif q.status == 1 %>
                 <span class="badge bg-danger study-status">NG</span>
-                <% elsif q['submitted'] == 1 %>
+                <% elsif q.submitted == 1 %>
                 <span class="badge bg-warning study-status">提出済</span>
                 <% end %>
-                <% if auth_edit(q['cr_user']) %>
-                &nbsp; <a href="/admin/create_and_edit?no=<%= q['id'] %>">EDIT</a>
+                <% if auth_edit(q.cr_user) %>
+                &nbsp; <a href="/admin/create_and_edit?no=<%= q.id %>">EDIT</a>
                 <% end %>
               </div>
             </td>

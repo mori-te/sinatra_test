@@ -63,6 +63,25 @@ module STUDY
         self.set_input_file(user, file_name, data)
       end
     end
+
+    def self.set_parameter(userid, question)
+      input_type = question.input_type
+      input_name = nil
+      input_data = nil
+      readonly = true;
+      if input_type == '1'
+        input_name, input_data = '標準入力データ', question.parameter
+        self.set_input_file(userid, '.input.txt', question.parameter)
+        readonly = false;
+      elsif input_type == '2'
+        input_name, input_data = "入力ファイル（#{question.file_name}）", question.file_data
+        self.set_input_file(userid, question.file_name, question.file_data)
+        readonly = false;
+      else
+        input_name, input_data = '入力データなし', '-'
+      end
+      [input_type, input_name, input_data, readonly]
+    end
   
   end
 

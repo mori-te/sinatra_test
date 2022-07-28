@@ -64,39 +64,26 @@ class AdminController < BaseController
 
     # パラメータ・セッション情報取得
     pid = @params['pid']
-    @userid = session[:userid]
+    userid = session[:userid]
     
     # 問題取得
-
     sql = %{
       SELECT q.id, q.level, q.task, q.outline, q.question, p.code, l.shot_name, q.input_type, q.parameter, q.file_name, q.file_data, p.result, q.answer, p.userid, q.cr_user
         FROM (progresses p join questions q ON p.question_id = q.id) join languages l
           ON p.lang_id = l.id
-       WHERE p.id = #{pid}
+      WHERE p.id = ?
     }
-    res = @@client.query(sql)
-    @question = res.first
-    input_type = @question['input_type']
-    readonly = true;
-    if input_type == '1'
-      @input_name = '標準入力データ'
-      @input_data = @question['parameter']
-      STUDY::Utils.set_input_file(@userid, '.input.txt', @question['parameter'])
-      readonly = false;
-    elsif input_type == '2'
-      @input_name = "入力ファイル（#{@question['file_name']}）"
-      @input_data = @question['file_data']
-      STUDY::Utils.set_input_file(@userid, @question['file_name'], @question['file_data'])
-      readonly = false;
-    else
-      @input_name = '入力データなし'
-      @input_data = '-'
-    end
+    dao = STUDY::BaseDao.new(@@client)
+    question = dao.query(sql, pid).first
+
+    # パラメータのセット
+    input_type, input_name, input_data, readonly = STUDY::Utils.set_parameter(userid, question)
+
     {
-      question: @question,
+      question: question.to_h,
       input_type: input_type,
-      input_name: @input_name,
-      input_data: @input_data,
+      input_name: input_name,
+      input_data: input_data,
       input_readonly: readonly
     }.to_json
   end
@@ -106,23 +93,23 @@ class AdminController < BaseController
   #
   get '/submmited_list_api' do
     redirect '/' unless session[:userid] and session[:authority] > 0
+
     userid = @params['user']
     sql = %{
-      SELECT q.id, p.id as pid, q.task, p.userid, q.outline, l.name, q.cr_user, p.sb_date
+      SELECT q.id, p.id as pid, q.task, p.userid, q.outline, l.name, q.cr_user, p.sb_date, '' as href
         FROM progresses p join questions q
           ON p.question_id = q.id join languages l
           ON p.lang_id = l.id
-       WHERE p.userid = '#{userid}' and p.status is null
+       WHERE p.userid = ? and p.status is null
     }
-    p sql
-    res = @@client.query(sql)
-    recodes = []
-    res.each do |r|
-      r['href'] = "check_answer?pid=#{r['pid']}"
-      r['sb_date'] = r['sb_date'] && r['sb_date'].strftime("%Y/%m/%d")
-      recodes << r
+    dao = STUDY::BaseDao.new(@@client)
+    res = dao.query(sql, userid)
+    recodes = res.map do |r|
+      r.href = "check_answer?pid=#{r.pid}"
+      r.sb_date = r.sb_date && r.sb_date.strftime("%Y/%m/%d")
+      r.to_h
     end
-    p recodes
+
     {
       user: userid,
       list: recodes
@@ -134,10 +121,9 @@ class AdminController < BaseController
   #
   get '/get_submmited_users_api' do
     redirect '/' unless session[:userid]
+
     res = @@client.query("select distinct userid from progresses where status is null")
-    recodes = []
-    res.each { |r| recodes << r }
-    p recodes
+    recodes = res.map {|r| r}
     {
       list: recodes
     }.to_json
@@ -152,15 +138,16 @@ class AdminController < BaseController
     json = JSON.parse(request.body.read)
     no = json["id"]
     status = json["status"]
-    p json
     p [no, status]
 
-    sql = %{
-      UPDATE progresses SET status = ?, up_user = ?, up_date = NOW(), del_flag = '0' WHERE id = ?
+    dao = Progresses.new(@@client)
+    data = {
+      status: status,
+      up_user: userid
     }
-    stmt = @@client.prepare(sql)
-    res = stmt.execute(status, userid, no)
-    ""
+    dao.update(data, "id = ?", no)
+
+    {}.to_json
   end
 
   #
@@ -180,15 +167,19 @@ class AdminController < BaseController
     question = params["question"]
     answer = params["answer"]
 
+    dao = Questions.new(@@client)
+    data = {
+      level: level, input_type: input_type, parameter: parameter, file_name: file_name, file_data: file_data, outline: outline, question: question, answer: answer, del_flag: '0'
+    }
+
     if params["no"] == "0"
       # 作成
       task = get_task_no(level)
-      sql = %{
-        INSERT INTO questions (task, level, input_type, parameter, file_name, file_data, outline, question, answer, cr_user, cr_date, up_user, up_date, del_flag)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, NOW(), '0')
-      }
-      stmt = @@client.prepare(sql)
-      res = stmt.execute(task, level, input_type, parameter, file_name, file_data, outline, question, answer, userid, userid)
+
+      data.update({
+        task: task, cr_user: userid, up_user: userid, up_date: Time.now
+      })
+      dao.insert(data)
     else
       # 修正
       no = params["no"].to_i
@@ -196,12 +187,12 @@ class AdminController < BaseController
       task_info = get_task_info(task)
       if task_info[2] != level
         task = get_task_no(level)   # 難易度(LEVEL)が変わっていたらTASK振り直し
-    end
-      sql = %{
-        UPDATE questions SET task = ?, level = ?, input_type = ?, parameter = ?, file_name = ?, file_data = ?, outline = ?, question = ?, answer = ?, up_user = ?, up_date = NOW(), del_flag = '0' WHERE id = ?
-      }
-      stmt = @@client.prepare(sql)
-      res = stmt.execute(task, level, input_type, parameter, file_name, file_data, outline, question, answer, userid, no)
+      end
+
+      data.update({
+        task: task, up_user: userid
+      })
+      dao.update(data, "id = ?", no)
     end
 
     ""
@@ -216,10 +207,9 @@ class AdminController < BaseController
     userid = session[:userid]
     no = params["no"]
     p [userid, no]
-    sql = %{ DELETE FROM questions WHERE id = ? AND cr_user = ? }
-    stmt = @@client.prepare(sql)
-    res = stmt.execute(no, userid)
-    p res
+
+    dao = Questions.new(@@client)
+    res = dao.delete("id = ? AND cr_user = ?", no, userid)
     ""
   end
 
@@ -231,8 +221,8 @@ class AdminController < BaseController
     @userid = session[:userid]
     no = @params['no']
 
-    questions_dao = Questions.new(@@client)
-    qa = questions_dao.find_by("id = ?", no.to_i).first
+    dao = Questions.new(@@client)
+    qa = dao.find_by("id = ?", no.to_i).first
     input_data = qa.parameter if qa.input_type == "1"
     input_data = qa.file_data if qa.input_type == "2"
 
@@ -267,8 +257,9 @@ class AdminController < BaseController
   end
   
   def get_task_no(level)
-    res = @@client.query("select substring_index(max(task), '-', -1) as level_max from questions where level = '#{level}'")
-    no = res.first["level_max"].to_i + 1
+    dao = Questions.new(@@client)
+    res = dao.query("select substring_index(max(task), '-', -1) as level_max from questions where level = ?", level).first
+    no = res.level_max.to_i + 1
     task = conv_level2no(level).to_s + "-" + no.to_s
   end
 

@@ -43,22 +43,19 @@ class FrontController < BaseController
     redirect '/' unless session[:userid]
     @userid = session[:userid]
     level =  @params[:level] || 'D'
-    @questions = []
+
     sql = %{
       select q.*, p.status, p.submitted
         from questions q left outer join progresses p
-          on q.id = p.question_id and p.userid = '#{@userid}'
-       where q.level = '#{level}'
+          on q.id = p.question_id and p.userid = ?
+       where q.level = ?
       order by cast(substr(q.task, 3) as signed)
     }
-    res = @@client.query(sql)
-    res.each do |row|
-      @questions << row
-    end
-    @level_d = level == "D" ? "active" : ""
-    @level_c = level == "C" ? "active" : ""
-    @level_b = level == "B" ? "active" : ""
-    @level_a = level == "A" ? "active" : ""
+    dao = STUDY::BaseDao.new(@@client)
+    @questions = dao.query(sql, @userid, level)
+
+    @level = 'DCBA'.split(//).map {|x| [x, level == x ? "active" : ""]}.to_h
+
     erb :menu
   end
 
@@ -140,48 +137,35 @@ class FrontController < BaseController
   get '/get_question_api' do
     redirect '/' unless session[:userid]
     no = @params['no']
-    @userid = session[:userid]
+    userid = session[:userid]
 
     sql = %{
       SELECT
         q.id, q.level, q.task, q.outline, q.question, p.code, p.lang_id, l.shot_name, q.input_type, q.parameter, q.file_name, q.file_data, p.result, q.answer, p.userid, q.cr_user
       FROM
         questions q
-        LEFT OUTER JOIN progresses p ON p.question_id = q.id and p.userid = '#{@userid}'
+        LEFT OUTER JOIN progresses p ON p.question_id = q.id and p.userid = ?
         LEFT OUTER JOIN languages l ON p.lang_id = l.id
       WHERE
-        q.id = #{no};
+        q.id = ?;
     }
-    res = @@client.query(sql)
-    @question = res.first
-    input_type = @question['input_type']
-    readonly = true;
-    if input_type == '1'
-      @input_name, @input_data = '標準入力データ', @question['parameter']
-      STUDY::Utils.set_input_file(@userid, '.input.txt', @question['parameter'])
-      readonly = false;
-    elsif input_type == '2'
-      @input_name, @input_data = "入力ファイル（#{@question['file_name']}）", @question['file_data']
-      STUDY::Utils.set_input_file(@userid, @question['file_name'], @question['file_data'])
-      readonly = false;
-    else
-      @input_name, @input_data = '入力データなし', '-'
-    end
+    dao = AnswerCodes.new(@@client)
+    question = dao.query(sql, userid, no).first
 
-    if @question['lang_id'] != nil
-      answer_code_dao = AnswerCodes.new(@@client)
-      answer = answer_code_dao.find_by("question_id = ? and lang_id = ? and userid = ?", @question['id'], @question['lang_id'], @userid).first
+    # パラメータのセット
+    input_type, input_name, input_data, readonly = STUDY::Utils.set_parameter(userid, question)
+    if question.lang_id != nil
+      answer = dao.find_by("question_id = ? and lang_id = ? and userid = ?", question.id, question.lang_id, userid).first
       if answer
-        @question['source'] = answer.code
+        question.source = answer.code
       end
-      p @question
     end
 
     {
-      question: @question,
+      question: question.to_h,
       input_type: input_type,
-      input_data: @input_data,
-      input_name: @input_name,
+      input_data: input_data,
+      input_name: input_name,
       input_readonly: readonly
     }.to_json
   end
@@ -214,6 +198,7 @@ class FrontController < BaseController
 
       result = STUDY::Utils.exec_source_file(user, "javac #{source_file} && java #{exec_name}")
     rescue
+      p $!
       result = "予期せぬエラーが発生しました。クラスが定義されているか確認してください。"
     end
     { result: result }.to_json
@@ -292,7 +277,7 @@ class FrontController < BaseController
   #
   post '/save_api' do
     redirect '/' unless session[:userid]
-    @userid = session[:userid]
+    userid = session[:userid]
     params = JSON.parse(request.body.read)
     no = params['question_id']
     code = params['code']
@@ -304,15 +289,15 @@ class FrontController < BaseController
     data = {
       question_id: no,
       lang_id: lang.id,
-      userid: @userid,
+      userid: userid,
       code: code,
       del_flag: '0'
     }
     if res == nil
-      data['cr_user'] = @userid
+      data['cr_user'] = userid
       answer_code_dao.insert(data)
     else
-      data['up_user'] = @userid
+      data['up_user'] = userid
       answer_code_dao.update(data, "id = ?", res.id)
     end
 

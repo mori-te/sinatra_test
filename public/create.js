@@ -85,7 +85,7 @@ var vm = new Vue({
                 vm.outline = response.data.outline;
                 vm.question = response.data.question;
                 vm.answer = response.data.answer;
-                vm.getUserId();
+                //vm.getUserId();
             })
         },
         deleteQuestion: function() {
@@ -168,6 +168,7 @@ var vm = new Vue({
         if (no > 0) {
             this.edit(no);
         }
+        this.getUserId();
         this.change();
     }
 })

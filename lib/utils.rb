@@ -1,6 +1,8 @@
 #
 # ユーティリティクラス
 #
+require 'timeout'
+
 module STUDY
   class Utils
     # ソースコードサーバ出力
@@ -20,18 +22,22 @@ module STUDY
     def self.exec_source_file(user, cmd)
       result = nil
       begin
-        IO.popen(['su', '-', user, '-c', "#{cmd}", :err => [:child, :out]], 'r+') do |io|
-          # 標準入力データ
-          begin
-            input_file_name = "/home/#{user}/.input.txt"
-            File.open(input_file_name, "r").each do |buf|
-              io.print(buf)
-            end
-            FileUtils.rm(input_file_name)
-          rescue; end
-          io.close_write
-          result = io.read
+        Timeout.timeout(30) do
+          IO.popen(['su', '-', user, '-c', "#{cmd}", :err => [:child, :out]], 'r+') do |io|
+            # 標準入力データ
+            begin
+              input_file_name = "/home/#{user}/.input.txt"
+              File.open(input_file_name, "r").each do |buf|
+                io.print(buf)
+              end
+              FileUtils.rm(input_file_name)
+            rescue; end
+            io.close_write
+            result = io.read
+          end
         end
+      rescue Timeout::Error
+        result = "タイムアウトが発生しました。プログラムを見直してください。"
       rescue
         result = $!
       end

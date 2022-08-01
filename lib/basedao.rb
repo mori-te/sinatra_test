@@ -10,7 +10,7 @@ module STUDY
   #
   class Recode
     def initialize(row)
-      @row = row
+      @row = row.dup
     end
 
     # ハッシュ化

@@ -1,7 +1,6 @@
 #
 # ユーティリティクラス
 #
-require 'timeout'
 
 module STUDY
   class Utils
@@ -22,23 +21,27 @@ module STUDY
     def self.exec_source_file(user, cmd)
       result = nil
       begin
-        Timeout.timeout(30) do
-          IO.popen(['su', '-', user, '-c', "#{cmd}", :err => [:child, :out]], 'r+') do |io|
-            # 標準入力データ
-            begin
-              input_file_name = "/home/#{user}/.input.txt"
-              File.open(input_file_name, "r").each do |buf|
-                io.print(buf)
-              end
-              FileUtils.rm(input_file_name)
-            rescue; end
-            io.close_write
-            result = io.read
+        timeout_sec = 30
+        IO.popen(['su', '-', user, '-c', "#{cmd}", :err => [:child, :out]], 'r+') do |io|
+          th = Thread.start do 
+            sleep timeout_sec
+            system "kill #{io.pid}" if not io.closed? 
+          end
+          # 標準入力データ
+          begin
+            input_file_name = "/home/#{user}/.input.txt"
+            File.open(input_file_name, "r").each do |buf|
+              io.print(buf)
+            end
+            FileUtils.rm(input_file_name)
+          rescue; end
+          io.close_write
+          result = io.read
+          if result == "\nSession terminated, killing shell... ...killed.\n"
+            result = "#{timeout_sec}秒応答がないためプログラムを停止しました。"
           end
         end
-      rescue Timeout::Error
-        result = "タイムアウトが発生しました。プログラムを見直してください。"
-      rescue
+      rescue => e
         result = $!
       end
       result

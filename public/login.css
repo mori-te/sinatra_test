@@ -1,0 +1,29 @@
+
+body {
+    background-color:#5286F5;
+    font-size:14px;
+    color:#fff;
+}
+.simple-login-container {
+    width:300px;
+    max-width:100%;
+    margin:80px auto;
+}
+.simple-login-container h2 {
+    text-align:center;
+    font-size:18px;
+    padding-bottom: 20px;
+}
+
+.simple-login-container .btn-login {
+    background-color:#FF6064;
+    color:#fff;
+}
+
+a {
+    color:#fff;
+}
+
+.profile-img-card {
+    border-radius: 50%;
+}

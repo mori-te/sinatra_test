@@ -154,7 +154,7 @@ class FrontController < BaseController
 
     # パラメータのセット
     input_type, input_name, input_data, readonly = STUDY::Utils.set_parameter(userid, question)
-    if question.lang_id != nil
+    if question.lang_id == nil
       answer = dao.find_by("question_id = ? and lang_id = ? and userid = ?", question.id, question.lang_id, userid).first
       if answer
         question.source = answer.code

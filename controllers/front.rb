@@ -141,7 +141,7 @@ class FrontController < BaseController
 
     sql = %{
       SELECT
-        q.id, q.level, q.task, q.outline, q.question, p.code, p.lang_id, l.shot_name, q.input_type, q.parameter, q.file_name, q.file_data, p.result, q.answer, p.userid, q.cr_user
+        q.id, q.level, q.task, q.outline, q.question, p.code as source, p.lang_id, l.shot_name, q.input_type, q.parameter, q.file_name, q.file_data, p.result, q.answer, p.userid, q.cr_user
       FROM
         questions q
         LEFT OUTER JOIN progresses p ON p.question_id = q.id and p.userid = ?

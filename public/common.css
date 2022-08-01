@@ -16,6 +16,21 @@ nav {
     text-align: right;
 }
 
+/* ヘッダー */
+.navbar {
+    background-color: #5286F5;
+}
+
+.navbar a.navbar-brand, .study-doc {
+    color: #fff;
+}
+
+.study-profile {
+    background-color: #fff;
+    font-weight: bold;
+}
+
+/*
 nav {
     outline: solid 1px #a2a5a8;
 }
@@ -28,6 +43,7 @@ nav {
 .navbar-brand {
     font-size: 1.1rem;
 }
+*/
 
 .CodeMirror {
     border: 1px solid #eee;

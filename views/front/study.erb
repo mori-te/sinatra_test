@@ -23,59 +23,64 @@
     <script type="module" defer src="main.js"></script>
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+
+    <!-- ヘッダ -->
+    <nav class="navbar navbar-expand-lg">
       <div class="container-fluid">
-        <a class="navbar-brand" href="/menu">簡易言語学習サイト</a>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <a class="navbar-brand" href="#">簡易言語学習サイト</a>
+        <div class="collapse navbar-collapse">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link active rob-navbar" aria-current="page" href="https://docs.ruby-lang.org/ja/latest/doc/index.html" target="_blank">Ruby Docs</a>
+              <a class="nav-link active rob-navbar study-doc" aria-current="page" href="https://docs.oracle.com/javase/jp/8/docs/api/" target="_blank">Java Docs</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link active rob-navbar" aria-current="page" href="https://docs.oracle.com/javase/jp/8/docs/api/" target="_blank">Java Docs</a>
+              <a class="nav-link active rob-navbar study-doc" aria-current="page" href="https://docs.ruby-lang.org/ja/latest/doc/index.html" target="_blank">Ruby Docs</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link active rob-navbar" aria-current="page" href="https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference" target="_blank">JavaScript Docs</a>
+              <a class="nav-link active rob-navbar study-doc" aria-current="page" href="https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference" target="_blank">JavaScript Docs</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link active rob-navbar" aria-current="page" href="https://docs.python.org/ja/3/library/index.html" target="_blank">Python Docs</a>
+              <a class="nav-link active rob-navbar study-doc" aria-current="page" href="https://docs.python.org/ja/3/library/index.html" target="_blank">Python Docs</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link active rob-navbar" aria-current="page" href="http://go.shibu.jp/" target="_blank">Go Docs</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active rob-navbar" aria-current="page" href="https://runebook.dev/ja/docs/gnu_cobol/" target="_blank">COBOL Docs</a>
+              <a class="nav-link active rob-navbar study-doc" aria-current="page" href="http://go.shibu.jp/" target="_blank">Go Docs</a>
             </li>
           </ul>
         </div>
         <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-          <%= @userid %>
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-          <li><a class="dropdown-item" href="/logout">ログアウト</a></li>
-        </ul>
-      </div>
+          <button class="btn study-profile dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+            <%= @userid %>
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+            <li><a class="dropdown-item" href="/logout">ログアウト</a></li>
+          </ul>
+        </div>
       </div>
     </nav>
+
     <div id="app" class="container py-2">
       <div class="row">
         <div class="col">
-          <h2>課題 <span ref="task">{{ task }}</span></h2>
+          <!-- 課題 -->
+          <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading">課題 <span ref="task">{{ task }}</span></h4>
+            <p>{{ outline }}</p>
+            <hr>
+            <p class="mb-0"><div v-html="compiledMarkdown"></div></p>
+          </div>
           <input type="hidden" ref="no" value="<%= @no %>">
-          <p class="lead">{{ outline }}</p>
-          <p>
-            <div v-html="compiledMarkdown"></div>
-          </p>
         </div>
       </div>
+      <!-- 入出力エリア -->
       <div class="row">
+        <!-- 左エリア-->
         <div class="col-lg-7">
           ソースコード
           <span @keydown.enter.shift.prevent="exec">
             <codemirror ref="cm" v-model="source" :options="cmOptions"></codemirror>
           </span>
         </div>
+        <!-- 右エリア-->
         <div class="col-lg">
           <div class="row">
             <div class="col-lg-9">
@@ -86,20 +91,27 @@
             </div>
           </div>
           <div class="row">
-            <textarea id="output" class="form-control font-monospace" rows="3" v-model="inputData" v-bind:readonly="isReadonly">{{ inputData }}</textarea>
+            <div class="col">
+              <textarea id="output" class="form-control font-monospace" rows="3" v-model="inputData" v-bind:readonly="isReadonly">{{ inputData }}</textarea>
+            </div>
           </div>
-          実行結果
           <div class="row">
+            <div class="col">
+              実行結果
               <textarea id="output" class="form-control font-monospace study-result" rows="10" readonly>{{ result }}</textarea>
+            </div>
           </div>
-          実行結果（解答）
           <div class="row">
+            <div class="col">
+              実行結果（解答）
               <textarea id="output" class="form-control font-monospace" rows="3" readonly>{{ answer }}</textarea>
+            </div>
           </div>
         </div>
       </div>
-      <br>
-      <div class="row">
+      <!-- ボタンエリア -->
+      <div class="row pt-3">
+        <!-- 左エリア-->
         <div class="col-lg-7">
           <select v-model="lang" v-on:change="change" class="form-select">
             <option value="java">Java</option>
@@ -112,7 +124,8 @@
             <option value="clang">C言語</option>
           </select>
         </div>
-        <div class="col-lg">
+        <!-- 右エリア-->
+        <div class="col-lg-5">
           <button v-on:click="back" id="back" type="button" class="btn btn-secondary">戻 る</button>
           <button v-on:click="exec" id="run" type="button" class="btn btn-primary float-end" v-bind:disabled="isProcessing">実 行</button>
           <button v-on:click="submitted" id="submitted" type="button" class="btn btn-primary float-end me-md-2" v-bind:disabled="isProcessing">提 出</button>

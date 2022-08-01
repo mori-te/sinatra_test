@@ -22,26 +22,12 @@
         </div>
       </div>
     </div>
-    <!--
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">簡易言語学習サイト</a>
-        <div class="dropdown">
-          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-            <%= @userid %>
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-            <li><a class="dropdown-item" href="/logout">ログアウト</a></li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-    -->
+
     <div class="container pt-2">
       <!-- お知らせ -->
       <div class="alert alert-success" role="alert">
-        <h4 class="alert-heading">これからプログラム言語の学習をしよう！</h4>
-        <p>言語はjava, ruby, python, go, C言語などから選択し、問題文を解いてスキルアップを目指してください。</p>
+        <h4 class="alert-heading">プログラム言語の学習をしよう！</h4>
+        <p>言語はjava, ruby, python, go, C言語などから選択し、問題文を解いてスキルアップを目指しましょう。</p>
         <hr>
         <p class="mb-0"></p>
       </div>    
@@ -66,11 +52,11 @@
         <li>
           <div class="study-task-list" task="<%= q.task %>">
             <div class="row">
-              <div class="col-8">
+              <div class="col-7">
                 <a class="study-task" href="/study?no=<%= q.id %>"><%= q.outline %></a>
               </div>
-              <div class="col-3 justify-content-between">
-                問題更新日: <%= q.up_date.strftime('%Y/%m/%d') %>
+              <div class="col-4 justify-content-between">
+                課題更新日: <%= q.up_date.strftime('%Y/%m/%d') %>
                 <% if q.status == 0 %>
                 <span class="badge bg-primary study-status">OK</span>
                 <% elsif q.status == 1 %>

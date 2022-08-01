@@ -12,11 +12,11 @@ class Mysql2::Client
   alias_method :query_without_lock, :query
   alias_method :query, :query_with_lock
 
-  def prepare_with_lock(*args)
-    @@semaphore.synchronize { prepare_without_lock(*args) }
-  end
-  alias_method :prepare_without_lock, :prepare
-  alias_method :prepare, :prepare_with_lock
+  # def prepare_with_lock(*args)
+  #   @@semaphore.synchronize { prepare_without_lock(*args) }
+  # end
+  # alias_method :prepare_without_lock, :prepare
+  # alias_method :prepare, :prepare_with_lock
 end
 
 class BaseController < Sinatra::Base

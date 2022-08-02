@@ -104,6 +104,10 @@ class FrontController < BaseController
     end
   end
 
+  get '/auth' do
+    redirect "/"
+  end
+
   #
   # ログアウト
   #

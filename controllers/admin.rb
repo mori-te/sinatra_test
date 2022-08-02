@@ -175,6 +175,7 @@ class AdminController < BaseController
     if params["no"] == "0"
       # 作成
       task = get_task_no(level)
+      p [task]
 
       data.update({
         task: task, cr_user: userid, up_user: userid, up_date: Time.now
@@ -258,7 +259,7 @@ class AdminController < BaseController
   
   def get_task_no(level)
     dao = Questions.new(@@client)
-    res = dao.query("select substring_index(max(task), '-', -1) as level_max from questions where level = ?", level).first
+    res = dao.query("select max(cast(substring_index(task, '-', -1) as signed)) as level_max from questions where level = ?", level).first
     no = res.level_max.to_i + 1
     task = conv_level2no(level).to_s + "-" + no.to_s
   end

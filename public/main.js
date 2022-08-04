@@ -18,6 +18,10 @@ var vm = new Vue({
             mode: 'javascript',
             theme: 'lesser-dark'
         },
+        modal: {
+            title: "",
+            body: ""
+        },
         task: "",
         outline: "",
         question: "",
@@ -132,6 +136,20 @@ var vm = new Vue({
                 vm.inputData = response.data.input_data;
                 vm.result = '';
             })
+        },
+        openDialog: function (e) {
+            const type = e.target.attributes['text-type'].value;
+            if (type == "1") {
+                vm.modal.title = vm.inputName;
+                vm.modal.body = vm.inputData;
+            } else if (type == "2") {
+                vm.modal.title = "実行結果";
+                vm.modal.body = vm.result;
+            } else if (type == "3") {
+                vm.modal.title = "実行結果（解答）";
+                vm.modal.body = vm.answer;
+            }
+
         }
     },
     computed: {

@@ -1,3 +1,5 @@
+@import url(https://fonts.googleapis.com/icon?family=Material+Icons);
+
 nav {
     outline: solid 1px #a2a5a8;
 }
@@ -127,6 +129,32 @@ pre code {
     padding: 2px 12px;
     font-size: 0.6em;
 }
+
+.study-modal-btn {
+    border: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.study-open-in-new {
+    position: relative;
+}
+
+.study-open-in-new > button {
+    position: absolute;
+    top: 2px;
+    right: 8px;
+}
+
+.study-open-in-new-20 {
+    position: relative;
+}
+
+.study-open-in-new-20 > button {
+    position: absolute;
+    top: 25px;
+    right: 8px;
+}
+
 
 /* フッター（ボタンエリア）*/
 .study-button-area {

@@ -23,7 +23,8 @@ module STUDY
       begin
         timeout_sec = 30
         IO.popen(['su', '-', user, '-c', "#{cmd}", :err => [:child, :out]], 'r+') do |io|
-          th = Thread.start do 
+          # 無限ループ対応
+          Thread.start do 
             sleep timeout_sec
             system "kill #{io.pid}" if not io.closed? 
           end

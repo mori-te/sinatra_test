@@ -25,7 +25,7 @@
   <body>
 
     <!-- ヘッダ -->
-    <nav class="navbar navbar-expand-lg">
+    <nav class="navbar navbar-expand-lg sticky-top">
       <div class="container-fluid">
         <a class="navbar-brand" href="/menu">簡易言語学習サイト</a>
         <div class="collapse navbar-collapse">
@@ -72,7 +72,7 @@
         </div>
       </div>
       <!-- 入出力エリア -->
-      <div class="row">
+      <div class="row pb-5 mb-5">
         <!-- 左エリア-->
         <div class="col-lg-7">
           ソースコード
@@ -110,26 +110,28 @@
         </div>
       </div>
       <!-- ボタンエリア -->
-      <div class="row pt-3">
-        <!-- 左エリア-->
-        <div class="col-lg-7">
-          <select v-model="lang" v-on:change="change" class="form-select">
-            <option value="java">Java</option>
-            <option value="ruby">Ruby</option>
-            <option value="js">Javascript (node)</option>
-            <option value="python">Python</option>
-            <option value="golang">Go</option>
-            <option value="cobol">COBOL</option>
-            <option value="casl2">CASLⅡ</option>
-            <option value="clang">C言語</option>
-          </select>
-        </div>
-        <!-- 右エリア-->
-        <div class="col-lg-5">
-          <button v-on:click="back" id="back" type="button" class="btn btn-secondary">戻 る</button>
-          <button v-on:click="exec" id="run" type="button" class="btn btn-primary float-end" v-bind:disabled="isProcessing">実 行</button>
-          <button v-on:click="submitted" id="submitted" type="button" class="btn btn-primary float-end me-md-2" v-bind:disabled="isProcessing">提 出</button>
-          <button v-on:click="saveQuestion" id="save" type="button" class="btn btn-secondary float-end me-md-2" v-bind:disabled="isProcessing">保 存</button>
+      <div class="container fixed-bottom study-button-area py-3">
+        <div class="row">
+          <!-- 左エリア-->
+          <div class="col-lg-7">
+            <select v-model="lang" v-on:change="change" class="form-select">
+              <option value="java">Java</option>
+              <option value="ruby">Ruby</option>
+              <option value="js">Javascript (node)</option>
+              <option value="python">Python</option>
+              <option value="golang">Go</option>
+              <option value="cobol">COBOL</option>
+              <option value="casl2">CASLⅡ</option>
+              <option value="clang">C言語</option>
+            </select>
+          </div>
+          <!-- 右エリア-->
+          <div class="col-lg-5">
+            <button v-on:click="back" id="back" type="button" class="btn btn-secondary">戻 る</button>
+            <button v-on:click="exec" id="run" type="button" class="btn btn-primary float-end" v-bind:disabled="isProcessing">実 行</button>
+            <button v-on:click="submitted" id="submitted" type="button" class="btn btn-primary float-end me-md-2" v-bind:disabled="isProcessing">提 出</button>
+            <button v-on:click="saveQuestion" id="save" type="button" class="btn btn-secondary float-end me-md-2" v-bind:disabled="isProcessing">保 存</button>
+          </div>
         </div>
       </div>
       <div ref="spin"></div>

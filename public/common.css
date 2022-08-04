@@ -130,6 +130,7 @@ pre code {
     font-size: 0.6em;
 }
 
+/* ダイアログ */
 .study-modal-btn {
     border: 0;
     background-color: rgba(0, 0, 0, 0);
@@ -153,6 +154,10 @@ pre code {
     position: absolute;
     top: 25px;
     right: 8px;
+}
+
+#exampleModal > .modal-dialog {
+    max-width: 700px;
 }
 
 

@@ -19,13 +19,15 @@ nav {
 }
 
 /* ヘッダー */
-.navbar {
+.study-nav-front {
     background-color: #5286F5;
 }
 
-.navbar a.navbar-brand, .study-doc {
+.study-nav-front a.navbar-brand, .study-doc {
     color: #fff;
 }
+
+
 
 .study-profile {
     background-color: #fff;

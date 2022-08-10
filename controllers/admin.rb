@@ -20,9 +20,7 @@ class AdminController < BaseController
   #
   # 問題作成＆編集画面表示
   #
-  get '/create_and_edit' do
-    redirect '/' unless session[:userid] and session[:authority] > 0
-
+  get '/create_and_edit', :auth => [:teacher, :admin] do
     @userid = session[:userid]
     @question = {}
     @question['no'] = @params['no'] || '0'
@@ -33,8 +31,7 @@ class AdminController < BaseController
   #
   # 提出ソースチェック画面表示
   #
-  get '/check' do
-    redirect '/' unless session[:userid] and session[:authority] > 0
+  get '/check', :auth => [:teacher, :admin] do
     @userid = session[:userid]
     erb :check
   end
@@ -42,8 +39,7 @@ class AdminController < BaseController
   #
   # 提出回答確認画面表示
   #
-  get '/check_answer' do 
-    redirect '/' unless session[:userid] and session[:authority] > 0
+  get '/check_answer', :auth => [:teacher, :admin] do 
 
     # パラメータ・セッション情報取得
     @pid = @params['pid']
@@ -59,8 +55,7 @@ class AdminController < BaseController
   #
   # 提出問題取得API
   #
-  get '/check_progress_api' do
-    redirect '/' unless session[:userid] and session[:authority] > 0
+  get '/check_progress_api', :auth => [:teacher, :admin] do
 
     # パラメータ・セッション情報取得
     pid = @params['pid']
@@ -91,8 +86,7 @@ class AdminController < BaseController
   #
   # 提出リスト取得API
   #
-  get '/submmited_list_api' do
-    redirect '/' unless session[:userid] and session[:authority] > 0
+  get '/submmited_list_api', :auth => [:teacher, :admin] do
 
     userid = @params['user']
     sql = %{
@@ -119,9 +113,7 @@ class AdminController < BaseController
   #
   # 提出済ユーザ取得API
   #
-  get '/get_submmited_users_api' do
-    redirect '/' unless session[:userid]
-
+  get '/get_submmited_users_api', :auth => [:user, :teacher, :admin] do
     res = @@client.query("select distinct userid from progresses where status is null")
     recodes = res.map {|r| r}
     {
@@ -132,8 +124,7 @@ class AdminController < BaseController
   #
   # OK/NGステータス更新API
   #
-  post '/set_status_api' do
-    redirect '/' unless session[:userid] and session[:authority] > 0
+  post '/set_status_api', :auth => [:teacher, :admin] do
     userid = session[:userid]
     json = JSON.parse(request.body.read)
     no = json["id"]
@@ -153,8 +144,7 @@ class AdminController < BaseController
   #
   # 問題作成＆編集API
   #
-  post '/create_and_edit_question_api' do
-    redirect '/' unless session[:userid] and session[:authority] > 0
+  post '/create_and_edit_question_api', :auth => [:teacher, :admin] do
     params = JSON.parse(request.body.read)
     userid = session[:userid]
     level = params["level"]
@@ -202,8 +192,7 @@ class AdminController < BaseController
   #
   # 問題削除処理
   #
-  post '/delete_api' do
-    redirect '/' unless session[:userid] and session[:authority] > 0
+  post '/delete_api', :auth => [:teacher, :admin] do
     params = JSON.parse(request.body.read)
     userid = session[:userid]
     no = params["no"]
@@ -217,8 +206,7 @@ class AdminController < BaseController
   #
   # 問題取得API
   #
-  get '/get_question_api' do
-    redirect '/' unless session[:userid] and session[:authority] > 0
+  get '/get_question_api', :auth => [:teacher, :admin] do
     @userid = session[:userid]
     no = @params['no']
 

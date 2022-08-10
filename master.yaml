@@ -28,3 +28,9 @@ DATABASE:
   'USERNAME': 'root'
   'PASSWORD': 'mysql'
   'DBNAME': 'study'
+
+AUTH:
+  0: :user
+  1: :teacher
+  9: :admin
+  

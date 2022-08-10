@@ -1,5 +1,6 @@
 require 'sinatra/base'
 require 'sinatra/reloader'
+require 'yaml'
 require 'mysql2'
 
 # MySQL2がスレッドセーフでないのでロック掛ける。。
@@ -27,7 +28,17 @@ class BaseController < Sinatra::Base
 
   configure do
     @@client = nil
+    $yaml = YAML.load_file('master.yaml')
+    $auth = $yaml['AUTH']
   end
 
+  # 権限チェック
+  set(:auth) do |*roles|
+    condition do
+      unless session[:userid] && roles.any? {|role| session[:authority] == role }
+        redirect "/", 303
+      end
+    end
+  end
  
 end

@@ -3,7 +3,6 @@
 require_relative 'base'
 require 'net/imap'
 require 'json'
-require 'yaml'
 require 'fileutils'
 require 'mysql2'
 require 'digest/sha2'
@@ -20,7 +19,6 @@ class FrontController < BaseController
 
   # 初期設定
   configure do
-    $yaml = YAML.load_file('master.yaml')
   end
 
   # -------
@@ -39,8 +37,7 @@ class FrontController < BaseController
   #
   # 問題一覧
   #
-  get '/menu' do
-    redirect '/' unless session[:userid]
+  get '/menu', :auth => [:user, :teacher, :admin] do
     @userid = session[:userid]
     level =  @params[:level] || 'D'
 
@@ -68,7 +65,7 @@ class FrontController < BaseController
       db = $yaml['DATABASE']
       @@client = Mysql2::Client.new(
         :host => db['HOST'], :username => db['USERNAME'], :password => db['PASSWORD'], :encoding => 'utf8', :database => db['DBNAME'])
-  
+
       ml = $yaml['MAIL']
       users_dao = Users.new(@@client)
       user = users_dao.find_by("userid = ?", userid).first
@@ -93,7 +90,8 @@ class FrontController < BaseController
     if @error != nil
       erb :front
     else
-      session[:authority] = user.authority
+      #session[:authority] = user.authority
+      session[:authority] = $auth[user.authority]
       session[:userid] = userid
 
       dao = Languages.new(@@client)
@@ -119,9 +117,9 @@ class FrontController < BaseController
   #
   # 問題回答画面
   #
-  get '/study' do
+  get '/study', :auth => [:user, :teacher, :admin] do
     # 認証
-    redirect '/' unless session[:userid]
+    #redirect '/' unless session[:userid]
 
     # パラメータ・セッション情報取得
     @no = @params['no']
@@ -138,8 +136,8 @@ class FrontController < BaseController
   #
   # 問題の取得API
   #
-  get '/get_question_api' do
-    redirect '/' unless session[:userid]
+  get '/get_question_api', :auth => [:user, :teacher, :admin] do
+    #redirect '/' unless session[:userid]
     no = @params['no']
     userid = session[:userid]
 
@@ -251,7 +249,7 @@ class FrontController < BaseController
   end
 
   # 言語情報取得
-  get '/lang' do
+  get '/lang', :auth => [:user, :teacher, :admin] do
     lang = @@langs[params['lang']]
     lang_id = lang.id
     userid = session[:userid]
@@ -279,8 +277,8 @@ class FrontController < BaseController
 #
   # 解答保存API
   #
-  post '/save_api' do
-    redirect '/' unless session[:userid]
+  post '/save_api', :auth => [:user, :teacher, :admin] do
+    #redirect '/' unless session[:userid]
     userid = session[:userid]
     params = JSON.parse(request.body.read)
     no = params['question_id']
@@ -309,7 +307,7 @@ class FrontController < BaseController
   end
 
   # ソースコード提出
-  post '/submit_code' do
+  post '/submit_code', :auth => [:user, :teacher, :admin] do
     # パラメータの取得
     json = JSON.parse(request.body.read)
     user = json['user']
@@ -415,7 +413,7 @@ class FrontController < BaseController
     # 修正権限有無
     def auth_edit(cr_user)
       ret = false
-      if session[:authority] == 9 or (session[:authority] >= 1 and cr_user == session[:userid])
+      if session[:authority] == :admin or (session[:authority] == :teacher and cr_user == session[:userid])
         ret = true
       end
       ret
@@ -424,7 +422,7 @@ class FrontController < BaseController
     # 作成＆チェック権限有無
     def auth_create_and_check
       ret = false
-      if session[:authority] > 0
+      if session[:authority] != :user
         ret = true
       end
       ret

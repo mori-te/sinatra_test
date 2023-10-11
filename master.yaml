@@ -24,7 +24,7 @@ MAIL:
     http://{server}/?back={check_url}?pid={pid}
 
 DATABASE:
-  'HOST': 'study-mysql'
+  'HOST': 'study-mysql2'
   'USERNAME': 'root'
   'PASSWORD': 'mysql'
   'DBNAME': 'study'

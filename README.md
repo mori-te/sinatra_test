@@ -1,10 +1,5 @@
 # 構築手順
 
-## docker-composeの定義ファイル展開
-
-
-
-
 ## 仮想環境の構築
 
 dockerおよびdocker-composeがインストールされているlinuxにログインし、以下のスクリプトでgithubにログインする。
